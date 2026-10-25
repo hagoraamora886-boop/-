@@ -1,0 +1,8 @@
+{
+  "name": "Remix مساعد البرمجة والذكاء الاصطناعي",
+  "description": "منصة متطورة اعداد ا/ هاجر محمود لمادة البرمجة والذكاء الاصطناعي للصف الثاني بالبكالوريا المصرية لإنشاء بنوك الأسئلة، تقييم مستويات التفكير، وإدارة مكتبة الدروس.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
