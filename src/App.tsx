@@ -319,15 +319,20 @@ export default function App() {
 
               <div className="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5">
                 <div className="space-y-2 max-w-2xl">
-                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-gradient-to-r from-indigo-500/20 to-sky-500/20 border border-indigo-400/30 text-xs font-semibold text-sky-300">
-                    <Sparkles className="w-3.5 h-3.5 text-sky-300" />
-                    <span>منصة التفوق — الصف الثاني الثانوي بالبكالوريا المصرية</span>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-gradient-to-r from-indigo-500/20 to-sky-500/20 border border-indigo-400/30 text-xs font-semibold text-sky-300">
+                      <Sparkles className="w-3.5 h-3.5 text-sky-300" />
+                      <span>منصة التفوق — الصف الثاني الثانوي بالبكالوريا المصرية</span>
+                    </div>
+                    <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-gradient-to-r from-purple-500/25 to-pink-500/20 border border-purple-400/40 text-xs font-bold text-purple-200 shadow-sm">
+                      <span>✨ إعداد سفيرة البرمجة أ/ هاجر محمود</span>
+                    </div>
                   </div>
                   <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white leading-tight">
                     منصة البرمجة والذكاء الاصطناعي التفاعلية
                   </h1>
                   <p className="text-xs sm:text-sm text-slate-300 leading-relaxed font-normal">
-                    منظومة تفاعلية تجمع بين معايير وزارة التربية والتعليم المصرية ونماذج الذكاء الاصطناعي للتدريب العملي على بايثون، حل المسائل، وتصدير نماذج الاختبارات والتقييم.
+                    منظومة تفاعلية تجمع بين معايير وزارة التربية والتعليم المصرية ونماذج الذكاء الاصطناعي للتدريب العملي، حل المشكلات والسيناريوهات التقنية، وتصدير نماذج الاختبارات والتقييم المعتمدة.
                   </p>
                 </div>
 
@@ -436,7 +441,7 @@ export default function App() {
           <div className="flex items-center gap-4 text-slate-400">
             <span>منهج معتمد لوزارة التربية والتعليم والتعليم الفني</span>
             <span aria-hidden="true">·</span>
-            <span>بايثون ونماذج التعلم الآلي</span>
+            <span>تكنولوجيا المعلومات وتطبيقات الويب والذكاء الاصطناعي</span>
           </div>
         </div>
       </footer>

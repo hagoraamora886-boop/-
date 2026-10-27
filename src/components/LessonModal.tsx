@@ -130,7 +130,7 @@ export const LessonModal: React.FC<LessonModalProps> = ({
             </label>
             <input
               type="text"
-              placeholder="مثال: الخوارزميات التكرارية وحساب التعقيد الزمني في بايثون"
+              placeholder="مثال: آليات التشفير والمصادقة في تطبيقات الويب الحديثة"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm text-slate-800 focus:bg-white focus:ring-2 focus:ring-sky-500/30 focus:border-sky-500 transition-all"
@@ -188,14 +188,13 @@ export const LessonModal: React.FC<LessonModalProps> = ({
           {/* Code Example (Optional) */}
           <div>
             <label className="block text-xs font-semibold text-slate-700 mb-1.5 flex items-center justify-between">
-              <span>كود بايثون توضيحي (اختياري)</span>
-              <span className="text-indigo-600 font-mono text-[11px]">Python 3</span>
+              <span>كود أو سيناريو تطبيقي توضيحي (اختياري)</span>
+              <span className="text-indigo-600 font-mono text-[11px]">Code / Script</span>
             </label>
             <textarea
               rows={3}
-              placeholder="# مقطع برمجي يوضح فكرة الدرس
-for i in range(5):
-    print('AI Step:', i)"
+              placeholder="// مقطع برمجي أو سيناريو تطبيقي يوضح فكرة الدرس
+// مثال: قواعد جدار الحماية، معالجة طلبات الويب، أو منطق خوارزمي"
               value={codeExample}
               onChange={(e) => setCodeExample(e.target.value)}
               className="w-full px-3.5 py-2.5 bg-slate-900 text-emerald-400 font-mono text-xs rounded-xl border border-slate-800 focus:ring-2 focus:ring-sky-500/30 focus:border-sky-500 transition-all"

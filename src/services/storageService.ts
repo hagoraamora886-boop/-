@@ -6,9 +6,9 @@
 import { DEFAULT_CHAPTERS, DEFAULT_LESSONS } from '../data/defaultLessons.ts';
 import { Chapter, Lesson, QuestionBatch } from '../types.ts';
 
-const LESSONS_STORAGE_KEY = 'ai_programming_assistant_lessons_v2_textbook';
-const CHAPTERS_STORAGE_KEY = 'ai_programming_assistant_chapters_v2_textbook';
-const SAVED_BATCHES_STORAGE_KEY = 'ai_programming_assistant_saved_batches_v2';
+const LESSONS_STORAGE_KEY = 'ai_programming_assistant_lessons_v3_curriculum_nopy';
+const CHAPTERS_STORAGE_KEY = 'ai_programming_assistant_chapters_v3_curriculum';
+const SAVED_BATCHES_STORAGE_KEY = 'ai_programming_assistant_saved_batches_v3';
 
 export const storageService = {
   // Lessons
@@ -22,12 +22,13 @@ export const storageService = {
         }
       }
 
-      // Check migration from v1 to retain any custom lessons created by the user
-      const v1Stored = localStorage.getItem('ai_programming_assistant_lessons_v1');
-      if (v1Stored) {
-        const v1Parsed = JSON.parse(v1Stored);
-        if (Array.isArray(v1Parsed)) {
-          const userCustomLessons = v1Parsed.filter((l: Lesson) => l.isCustom);
+      // Check migration from previous storage versions to retain any user-created custom lessons
+      const prevStored = localStorage.getItem('ai_programming_assistant_lessons_v2_textbook') ||
+        localStorage.getItem('ai_programming_assistant_lessons_v1');
+      if (prevStored) {
+        const prevParsed = JSON.parse(prevStored);
+        if (Array.isArray(prevParsed)) {
+          const userCustomLessons = prevParsed.filter((l: Lesson) => l.isCustom);
           const combined = [...userCustomLessons, ...DEFAULT_LESSONS];
           this.saveLessons(combined);
           return combined;

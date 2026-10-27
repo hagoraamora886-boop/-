@@ -184,7 +184,7 @@ export const LessonLibrary: React.FC<LessonLibraryProps> = ({
             <Search className="w-4 h-4 text-slate-400 absolute right-3.5 top-1/2 -translate-y-1/2" />
             <input
               type="text"
-              placeholder="ابحث في عناوين ونصوص الدروس، المفاهيم، وأكواد بايثون..."
+              placeholder="ابحث في عناوين ونصوص الدروس، المفاهيم، وسيناريوهات التطبيق..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full pl-3 pr-9 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm text-slate-800 placeholder:text-slate-400 focus:bg-white focus:ring-2 focus:ring-sky-500/30 focus:border-sky-500 transition-all"
@@ -309,7 +309,7 @@ export const LessonLibrary: React.FC<LessonLibraryProps> = ({
                           <span className="w-2.5 h-2.5 rounded-full bg-amber-500/80" />
                           <span className="w-2.5 h-2.5 rounded-full bg-emerald-500/80" />
                         </div>
-                        <span className="text-[10px] font-mono text-slate-400">python</span>
+                        <span className="text-[10px] font-mono text-slate-400">script</span>
                       </div>
                       <div className="p-2.5 font-mono text-[11px] text-emerald-400 overflow-x-auto">
                         <span className="truncate block">{les.codeExample.split('\n')[0]}</span>

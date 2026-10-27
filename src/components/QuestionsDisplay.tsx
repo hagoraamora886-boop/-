@@ -24,7 +24,131 @@ import {
   Star,
   CheckCircle2,
   Edit3,
+  XCircle,
+  CheckCheck,
+  FileQuestion,
 } from 'lucide-react';
+
+interface VerificationResult {
+  isCorrect: boolean;
+  matchScore: number;
+  feedback: string;
+}
+
+const verifyStudentText = (
+  userText: string,
+  correctAnswer: string,
+  options?: string[]
+): VerificationResult => {
+  if (!userText || !userText.trim()) {
+    return {
+      isCorrect: false,
+      matchScore: 0,
+      feedback: 'يرجى كتابة إجابتك أو مسودتك أولاً للتحقق منها.',
+    };
+  }
+
+  const normalize = (str: string) =>
+    str
+      .trim()
+      .toLowerCase()
+      .replace(/[أإآ]/g, 'ا')
+      .replace(/ة/g, 'ه')
+      .replace(/ى/g, 'ي')
+      .replace(/[\u064B-\u065F]/g, '') // remove tashkeel
+      .replace(/[.,/#!$%^&*;:{}=\-_`~()?"'«»]/g, ' ')
+      .replace(/\s+/g, ' ');
+
+  const normUser = normalize(userText);
+  const normCorrect = normalize(correctAnswer);
+
+  // 1. Check if user wrote option letter (أ, ب, ج, د)
+  if (options && options.length > 0) {
+    const letters = ['أ', 'ب', 'ج', 'د'];
+    const correctIdx = options.findIndex((opt) => opt === correctAnswer);
+    if (correctIdx !== -1) {
+      const correctLetter = letters[correctIdx];
+      const userLetter = normUser.replace(/^(الخيار|خيار|اجابة|حرف)\s*/, '').trim();
+      if (userLetter === correctLetter || normUser === correctLetter) {
+        return {
+          isCorrect: true,
+          matchScore: 100,
+          feedback: `إجابة صحيحة ومطابقة تماماً! اختيارك (${correctLetter}): «${correctAnswer}».`,
+        };
+      }
+    }
+  }
+
+  // 2. Exact match
+  if (normUser === normCorrect) {
+    return {
+      isCorrect: true,
+      matchScore: 100,
+      feedback: 'إجابة صحيحة ومطابقة تماماً لنموذج الحل المعتمد! أحسنت صنعاً.',
+    };
+  }
+
+  // 3. Substring match
+  if (normUser.includes(normCorrect)) {
+    return {
+      isCorrect: true,
+      matchScore: 95,
+      feedback: 'إجابة صحيحة! تتضمن المسودة الإجابة النموذجية المعتمدة وتغطي المطلوب بدقة.',
+    };
+  }
+
+  if (normCorrect.includes(normUser) && normUser.length >= 4) {
+    return {
+      isCorrect: true,
+      matchScore: 85,
+      feedback: 'إجابة صحيحة ومتقاربة جداً مع الحل المعتمد في المنهج.',
+    };
+  }
+
+  // 4. Token overlap (for essays and multi-word answers)
+  const stopWords = new Set([
+    'في', 'من', 'على', 'عن', 'الى', 'إلى', 'مع', 'هذا', 'هذه', 'تم', 'هو', 'هي', 'أن', 'ان',
+    'ما', 'لا', 'قد', 'كل', 'او', 'أو', 'حيث', 'بواسطة', 'عبر', 'ذلك', 'تلك', 'التي', 'الذي',
+  ]);
+  const userWords = new Set(
+    normUser.split(' ').filter((w) => w.length > 2 && !stopWords.has(w))
+  );
+  const correctWords = normCorrect
+    .split(' ')
+    .filter((w) => w.length > 2 && !stopWords.has(w));
+
+  if (correctWords.length > 0) {
+    let matchedWords = 0;
+    correctWords.forEach((cw) => {
+      if (userWords.has(cw)) {
+        matchedWords += 1;
+      } else {
+        for (const uw of userWords) {
+          if (uw.includes(cw) || cw.includes(uw)) {
+            matchedWords += 0.8;
+            break;
+          }
+        }
+      }
+    });
+
+    const matchRatio = matchedWords / correctWords.length;
+    if (matchRatio >= 0.4) {
+      const score = Math.min(100, Math.round(matchRatio * 100));
+      return {
+        isCorrect: true,
+        matchScore: score,
+        feedback: `إجابة صحيحة بنسبة توافق ${score}%! تحتوي المسودة على المفاهيم والكلمات المفتاحية الأساسية.`,
+      };
+    }
+  }
+
+  return {
+    isCorrect: false,
+    matchScore: 0,
+    feedback: 'الإجابة المدونة في المسودة غير مطابقة أو ينقصها التدقيق. راجع الحل النموذجي المعتمد أدناه.',
+  };
+};
 
 interface QuestionsDisplayProps {
   questions: QuestionItem[];
@@ -54,6 +178,23 @@ export const QuestionsDisplay: React.FC<QuestionsDisplayProps> = ({
   const [essayAnswers, setEssayAnswers] = useState<Record<string, string>>({});
   const [submittedEssays, setSubmittedEssays] = useState<Record<string, boolean>>({});
   const [selfRatings, setSelfRatings] = useState<Record<string, 'excellent' | 'good' | 'review'>>({});
+
+  // Student Draft & Scratchpad states
+  const [studentDrafts, setStudentDrafts] = useState<Record<string, string>>({});
+  const [openDrafts, setOpenDrafts] = useState<Record<string, boolean>>({});
+  const [draftVerifications, setDraftVerifications] = useState<
+    Record<
+      string,
+      {
+        verified: boolean;
+        isCorrect: boolean;
+        matchScore: number;
+        feedback: string;
+        verifiedText: string;
+      }
+    >
+  >({});
+
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [copiedCodeId, setCopiedCodeId] = useState<string | null>(null);
   const [allCopied, setAllCopied] = useState(false);
@@ -70,6 +211,70 @@ export const QuestionsDisplay: React.FC<QuestionsDisplayProps> = ({
       ...prev,
       [questionId]: text,
     }));
+    // If changed after verification, invalidate verification
+    if (draftVerifications[questionId]) {
+      setDraftVerifications((prev) => {
+        const next = { ...prev };
+        delete next[questionId];
+        return next;
+      });
+    }
+  };
+
+  const handleDraftChange = (questionId: string, text: string) => {
+    setStudentDrafts((prev) => ({
+      ...prev,
+      [questionId]: text,
+    }));
+    if (draftVerifications[questionId]) {
+      setDraftVerifications((prev) => {
+        const next = { ...prev };
+        delete next[questionId];
+        return next;
+      });
+    }
+  };
+
+  const toggleDraft = (questionId: string) => {
+    setOpenDrafts((prev) => ({
+      ...prev,
+      [questionId]: !prev[questionId],
+    }));
+  };
+
+  const handleVerifyStudentAnswer = (questionId: string, inputSource: 'draft' | 'essay') => {
+    const targetQuestion = questions.find((q) => q.id === questionId);
+    if (!targetQuestion) return;
+
+    const textToVerify =
+      inputSource === 'essay'
+        ? essayAnswers[questionId] || ''
+        : studentDrafts[questionId] || '';
+
+    const result = verifyStudentText(
+      textToVerify,
+      targetQuestion.correctAnswer,
+      targetQuestion.options
+    );
+
+    setDraftVerifications((prev) => ({
+      ...prev,
+      [questionId]: {
+        verified: true,
+        isCorrect: result.isCorrect,
+        matchScore: result.matchScore,
+        feedback: result.feedback,
+        verifiedText: textToVerify,
+      },
+    }));
+  };
+
+  const handleClearVerification = (questionId: string) => {
+    setDraftVerifications((prev) => {
+      const next = { ...prev };
+      delete next[questionId];
+      return next;
+    });
   };
 
   const handleSubmitEssay = (questionId: string) => {
@@ -99,6 +304,8 @@ export const QuestionsDisplay: React.FC<QuestionsDisplayProps> = ({
     setEssayAnswers({});
     setSubmittedEssays({});
     setSelfRatings({});
+    setStudentDrafts({});
+    setDraftVerifications({});
   };
 
   // Score & Progress calculations
@@ -194,7 +401,7 @@ export const QuestionsDisplay: React.FC<QuestionsDisplayProps> = ({
       case 'true_false':
         return 'صواب أو خطأ';
       case 'code_trace':
-        return 'تتبع كود وتصحيح أخطاء';
+        return 'سؤال تطبيقي وعملي';
       case 'short_answer':
         return 'سؤال مقالي وتحليلي';
       default:
@@ -361,7 +568,7 @@ export const QuestionsDisplay: React.FC<QuestionsDisplayProps> = ({
                 </span>
               </div>
               <p className="text-xs text-slate-600 mt-0.5">
-                حل الأسئلة التفاعلية واكتب تحليلك في الأسئلة المقالية لتكتشف التقييم الفوري ونموذج التصحيح المعتمد
+                حل الأسئلة التفاعلية، اكتب تحليلك في الأسئلة المقالية ومسودة الحل، وتحقق من صحة إجابتك فورياً
               </p>
             </div>
           </div>
@@ -374,15 +581,17 @@ export const QuestionsDisplay: React.FC<QuestionsDisplayProps> = ({
               </div>
             </div>
 
-            {totalAnsweredCount > 0 && (
+            {(totalAnsweredCount > 0 ||
+              Object.keys(studentDrafts).some((k) => studentDrafts[k]?.trim()) ||
+              Object.keys(draftVerifications).length > 0) && (
               <button
                 type="button"
                 onClick={handleResetStudentQuiz}
                 className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-slate-700 bg-white hover:bg-slate-50 border border-slate-200 rounded-xl shadow-2xs hover:shadow-xs transition-all cursor-pointer"
-                title="إعادة بدء الاختبار التفاعلي ومسح الإجابات"
+                title="إعادة بدء الاختبار التفاعلي ومسح الإجابات والمسودات"
               >
                 <RotateCcw className="w-3.5 h-3.5 text-slate-500" />
-                <span>إعادة المحاولة</span>
+                <span>إعادة البدء</span>
               </button>
             )}
           </div>
@@ -523,7 +732,7 @@ export const QuestionsDisplay: React.FC<QuestionsDisplayProps> = ({
                         <span className="w-2.5 h-2.5 rounded-full bg-amber-500/80 inline-block"></span>
                         <span className="w-2.5 h-2.5 rounded-full bg-emerald-500/80 inline-block"></span>
                       </div>
-                      <span className="font-mono text-xs font-semibold text-sky-300 print:text-slate-900">Python 3.12</span>
+                      <span className="font-mono text-xs font-semibold text-sky-300 print:text-slate-900">السيناريو والتطبيق العملي</span>
                     </div>
                     <button
                       type="button"
@@ -668,6 +877,148 @@ export const QuestionsDisplay: React.FC<QuestionsDisplayProps> = ({
                 </div>
               )}
 
+              {/* مسودة الطالب وتتبع الكود والتحقق من صحة الإجابة (لأسئلة الاختيار وتتبع الكود والصواب والخطأ) */}
+              {q.options && q.options.length > 0 && (viewMode === 'student' || viewMode === 'exam') && (
+                <div className="mt-4 pt-3 border-t border-slate-100 print:hidden">
+                  <div className="flex items-center justify-between">
+                    <button
+                      type="button"
+                      onClick={() => toggleDraft(q.id)}
+                      className="inline-flex items-center gap-2 text-xs font-bold text-slate-700 hover:text-indigo-700 py-1 px-2.5 rounded-lg hover:bg-indigo-50/50 transition-colors cursor-pointer"
+                    >
+                      <PenLine className="w-3.5 h-3.5 text-indigo-600" />
+                      <span>مسودة الطالب وتتبع الكود (كتابة خطوات الحل وفحص الإجابة)</span>
+                      {studentDrafts[q.id]?.trim() && (
+                        <span className="w-2 h-2 rounded-full bg-indigo-500 animate-pulse" />
+                      )}
+                      {draftVerifications[q.id] && (
+                        <span
+                          className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                            draftVerifications[q.id].isCorrect
+                              ? 'bg-emerald-100 text-emerald-800 border border-emerald-200'
+                              : 'bg-rose-100 text-rose-800 border border-rose-200'
+                          }`}
+                        >
+                          {draftVerifications[q.id].isCorrect ? '✓ تم التحقق: صحيحة' : '✗ تم التحقق: غير مطابقة'}
+                        </span>
+                      )}
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => toggleDraft(q.id)}
+                      className="text-[11px] text-slate-500 hover:text-indigo-600 transition-colors cursor-pointer font-medium"
+                    >
+                      {openDrafts[q.id] ? 'إخفاء المسودة ▲' : 'فتح مسودة الطالب والكتابة والتحقق ▼'}
+                    </button>
+                  </div>
+
+                  {/* Collapsible / Expandable Draft Area */}
+                  {(openDrafts[q.id] || studentDrafts[q.id]?.trim() || draftVerifications[q.id]) && (
+                    <div className="mt-2.5 p-3.5 rounded-xl bg-slate-50 border border-slate-200/90 space-y-3">
+                      <div>
+                        <label className="block text-[11px] font-semibold text-slate-600 mb-1">
+                          اكتب مسودتك، تتبع المتغيرات، أو استنتاجك للتحقق من صحته:
+                        </label>
+                        <textarea
+                          value={studentDrafts[q.id] || ''}
+                          onChange={(e) => handleDraftChange(q.id, e.target.value)}
+                          placeholder="اكتب مسودتك هنا: تتبع قيم المتغيرات، خطوات الحل، اختيارك المبدئي، أو استنتاجك البرمجي..."
+                          rows={3}
+                          className="w-full p-3 bg-white border border-slate-300 rounded-lg text-xs font-mono text-slate-800 placeholder:text-slate-400 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all leading-relaxed"
+                        />
+                      </div>
+
+                      {/* Draft Action Controls */}
+                      <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
+                        <span className="text-[11px] text-slate-500 font-mono">
+                          {studentDrafts[q.id]?.length || 0} حرف مدون في مسودة الطالب
+                        </span>
+
+                        <div className="flex items-center gap-2">
+                          {studentDrafts[q.id]?.trim() && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                handleDraftChange(q.id, '');
+                                handleClearVerification(q.id);
+                              }}
+                              className="px-2.5 py-1.5 text-[11px] font-medium text-slate-500 hover:text-slate-800 bg-white border border-slate-200 rounded-lg transition-colors cursor-pointer"
+                            >
+                              مسح المسودة
+                            </button>
+                          )}
+
+                          <button
+                            type="button"
+                            onClick={() => handleVerifyStudentAnswer(q.id, 'draft')}
+                            disabled={!studentDrafts[q.id]?.trim()}
+                            className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-bold rounded-lg transition-all shadow-2xs ${
+                              studentDrafts[q.id]?.trim()
+                                ? 'bg-gradient-to-r from-indigo-600 to-sky-600 hover:from-indigo-700 hover:to-sky-700 text-white cursor-pointer active:scale-95'
+                                : 'bg-slate-200 text-slate-400 border border-slate-300 cursor-not-allowed'
+                            }`}
+                          >
+                            <CheckCheck className="w-3.5 h-3.5" />
+                            <span>التحقق من إجابة المسودة (صحيحة أم خطأ)</span>
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Verification Feedback Card */}
+                      {draftVerifications[q.id] && (
+                        <div
+                          className={`p-3.5 rounded-xl border transition-all text-xs space-y-2 ${
+                            draftVerifications[q.id].isCorrect
+                              ? 'bg-emerald-50/90 border-emerald-300 text-emerald-950'
+                              : 'bg-rose-50/90 border-rose-300 text-rose-950'
+                          }`}
+                        >
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2 font-bold text-sm">
+                              {draftVerifications[q.id].isCorrect ? (
+                                <>
+                                  <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                                  <span className="text-emerald-900">
+                                    ✓ إجابة المسودة صحيحة ومطابقة! (نسبة التوافق: {draftVerifications[q.id].matchScore}%)
+                                  </span>
+                                </>
+                              ) : (
+                                <>
+                                  <XCircle className="w-4 h-4 text-rose-600" />
+                                  <span className="text-rose-900">✗ إجابة المسودة غير مطابقة / خطأ</span>
+                                </>
+                              )}
+                            </div>
+
+                            <button
+                              type="button"
+                              onClick={() => handleClearVerification(q.id)}
+                              className="text-[11px] underline opacity-70 hover:opacity-100 cursor-pointer"
+                            >
+                              إغلاق التحقق
+                            </button>
+                          </div>
+
+                          <p className="leading-relaxed font-sans">{draftVerifications[q.id].feedback}</p>
+
+                          <div className="pt-2 border-t border-slate-200/60 flex flex-col gap-1">
+                            <div className="font-semibold text-slate-900">
+                              <span>الإجابة النموذجية المعتمدة: </span>
+                              <span className="font-bold text-indigo-950">{q.correctAnswer}</span>
+                            </div>
+                            <div className="text-slate-600">
+                              <span>التفسير والشرح: </span>
+                              <span>{q.explanation}</span>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
+
               {/* Essay / Short Answer Question Student Writing Studio */}
               {(!q.options || q.options.length === 0) && (
                 <div className="mt-4 space-y-4">
@@ -711,24 +1062,92 @@ export const QuestionsDisplay: React.FC<QuestionsDisplayProps> = ({
                           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1">
                             <span className="text-[11px] text-slate-500">
                               {essayAnswers[q.id]?.trim()
-                                ? 'اضغط تسليم الإجابة للمقارنة بنموذج التصحيح والمعايير المعتمدة'
-                                : 'اكتب إجابتك أولاً لتفعيل زر التسليم والمراجعة الذاتية'}
+                                ? 'يمكنك التحقق من صحة إجابتك فورياً أو تسليمها للاعتماد والتقييم'
+                                : 'اكتب إجابتك أولاً لتفعيل زر التحقق والتسليم'}
                             </span>
 
-                            <button
-                              type="button"
-                              onClick={() => handleSubmitEssay(q.id)}
-                              disabled={!essayAnswers[q.id]?.trim()}
-                              className={`inline-flex items-center justify-center gap-1.5 px-4 py-2 text-xs font-semibold rounded-xl transition-all shadow-xs ${
-                                essayAnswers[q.id]?.trim()
-                                  ? 'bg-gradient-to-r from-indigo-600 to-sky-600 hover:from-indigo-700 hover:to-sky-700 text-white cursor-pointer active:scale-95'
-                                  : 'bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed'
+                            <div className="flex flex-wrap items-center gap-2">
+                              <button
+                                type="button"
+                                onClick={() => handleVerifyStudentAnswer(q.id, 'essay')}
+                                disabled={!essayAnswers[q.id]?.trim()}
+                                className={`inline-flex items-center justify-center gap-1.5 px-3.5 py-2 text-xs font-bold rounded-xl transition-all shadow-xs ${
+                                  essayAnswers[q.id]?.trim()
+                                    ? 'bg-emerald-600 hover:bg-emerald-700 text-white cursor-pointer active:scale-95'
+                                    : 'bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed'
+                                }`}
+                              >
+                                <CheckCheck className="w-3.5 h-3.5" />
+                                <span>التحقق من صحة الإجابة (صحيحة / خطأ)</span>
+                              </button>
+
+                              <button
+                                type="button"
+                                onClick={() => handleSubmitEssay(q.id)}
+                                disabled={!essayAnswers[q.id]?.trim()}
+                                className={`inline-flex items-center justify-center gap-1.5 px-4 py-2 text-xs font-semibold rounded-xl transition-all shadow-xs ${
+                                  essayAnswers[q.id]?.trim()
+                                    ? 'bg-gradient-to-r from-indigo-600 to-sky-600 hover:from-indigo-700 hover:to-sky-700 text-white cursor-pointer active:scale-95'
+                                    : 'bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed'
+                                }`}
+                              >
+                                <Send className="w-3.5 h-3.5" />
+                                <span>تسليم ومطالعة نموذج التصحيح</span>
+                              </button>
+                            </div>
+                          </div>
+
+                          {/* Instant Verification Feedback Card for Essay */}
+                          {draftVerifications[q.id] && (
+                            <div
+                              className={`p-4 rounded-xl border transition-all text-xs space-y-2.5 ${
+                                draftVerifications[q.id].isCorrect
+                                  ? 'bg-emerald-50/90 border-emerald-300 text-emerald-950'
+                                  : 'bg-rose-50/90 border-rose-300 text-rose-950'
                               }`}
                             >
-                              <Send className="w-3.5 h-3.5" />
-                              <span>تسليم الإجابة ومطالعة نموذج التصحيح</span>
-                            </button>
-                          </div>
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-2 font-bold text-sm">
+                                  {draftVerifications[q.id].isCorrect ? (
+                                    <>
+                                      <CheckCircle2 className="w-5 h-5 text-emerald-600" />
+                                      <span className="text-emerald-900">
+                                        ✓ إجابتك صحيحة ومطابقة! (نسبة التوافق: {draftVerifications[q.id].matchScore}%)
+                                      </span>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <XCircle className="w-5 h-5 text-rose-600" />
+                                      <span className="text-rose-900">✗ إجابتك غير مطابقة / خطأ</span>
+                                    </>
+                                  )}
+                                </div>
+
+                                <button
+                                  type="button"
+                                  onClick={() => handleClearVerification(q.id)}
+                                  className="text-[11px] font-semibold text-slate-500 hover:text-slate-800 bg-white/80 px-2 py-0.5 rounded border border-slate-200 cursor-pointer"
+                                >
+                                  إخفاء التحقق
+                                </button>
+                              </div>
+
+                              <p className="leading-relaxed font-sans text-xs">
+                                {draftVerifications[q.id].feedback}
+                              </p>
+
+                              <div className="pt-2 border-t border-slate-200/60 space-y-1.5">
+                                <div className="font-semibold text-slate-900">
+                                  <span>الإجابة النموذجية المعتمدة: </span>
+                                  <span className="font-bold text-indigo-900">{q.correctAnswer}</span>
+                                </div>
+                                <div className="text-slate-600">
+                                  <span className="font-semibold">التفسير والشرح: </span>
+                                  <span>{q.explanation}</span>
+                                </div>
+                              </div>
+                            </div>
+                          )}
                         </div>
                       ) : (
                         /* Submitted View */
@@ -839,13 +1258,13 @@ export const QuestionsDisplay: React.FC<QuestionsDisplayProps> = ({
                   {viewMode === 'exam' && (
                     <div className="space-y-3">
                       {/* On-screen typed answer */}
-                      <div className="print:hidden">
+                      <div className="print:hidden space-y-2">
                         <label className="block text-xs font-semibold text-slate-700 mb-1.5 flex items-center justify-between">
                           <span className="flex items-center gap-1.5">
                             <PenLine className="w-3.5 h-3.5 text-indigo-600" />
                             <span>إجابة الطالب والتحليل المقالي:</span>
                           </span>
-                          <span className="text-[11px] text-slate-400">يمكنك كتابة الإجابة هنا مباشرة قبل الطباعة</span>
+                          <span className="text-[11px] text-slate-400">يمكنك كتابة الإجابة والتحقق منها مباشرة على الشاشة</span>
                         </label>
                         <textarea
                           value={essayAnswers[q.id] || ''}
@@ -854,6 +1273,64 @@ export const QuestionsDisplay: React.FC<QuestionsDisplayProps> = ({
                           rows={4}
                           className="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl text-xs sm:text-sm text-slate-900 focus:bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all leading-relaxed"
                         />
+
+                        {/* Exam Mode Verification Button */}
+                        <div className="flex items-center justify-between pt-1">
+                          <span className="text-[11px] text-slate-500 font-mono">
+                            {essayAnswers[q.id]?.trim() ? `${essayAnswers[q.id]?.length || 0} حرف مسجل` : 'اكتب إجابتك لتفعيل التحقق الذاتي'}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => handleVerifyStudentAnswer(q.id, 'essay')}
+                            disabled={!essayAnswers[q.id]?.trim()}
+                            className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-lg transition-all ${
+                              essayAnswers[q.id]?.trim()
+                                ? 'bg-indigo-600 hover:bg-indigo-700 text-white cursor-pointer active:scale-95 shadow-2xs'
+                                : 'bg-slate-200 text-slate-400 cursor-not-allowed'
+                            }`}
+                          >
+                            <CheckCheck className="w-3.5 h-3.5" />
+                            <span>التحقق من صحة الإجابة (صحيحة / خطأ)</span>
+                          </button>
+                        </div>
+
+                        {/* Verification Output in Exam Mode */}
+                        {draftVerifications[q.id] && (
+                          <div
+                            className={`p-3.5 rounded-xl border transition-all text-xs space-y-2 mt-2 ${
+                              draftVerifications[q.id].isCorrect
+                                ? 'bg-emerald-50 border-emerald-300 text-emerald-950'
+                                : 'bg-rose-50 border-rose-300 text-rose-950'
+                            }`}
+                          >
+                            <div className="flex items-center justify-between">
+                              <div className="font-bold text-sm flex items-center gap-1.5">
+                                {draftVerifications[q.id].isCorrect ? (
+                                  <>
+                                    <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                                    <span>✓ إجابتك صحيحة ومطابقة! (نسبة التوافق: {draftVerifications[q.id].matchScore}%)</span>
+                                  </>
+                                ) : (
+                                  <>
+                                    <XCircle className="w-4 h-4 text-rose-600" />
+                                    <span>✗ إجابتك غير مطابقة / خطأ</span>
+                                  </>
+                                )}
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => handleClearVerification(q.id)}
+                                className="text-[11px] underline opacity-70 hover:opacity-100 cursor-pointer"
+                              >
+                                إغلاق
+                              </button>
+                            </div>
+                            <p className="leading-relaxed font-sans">{draftVerifications[q.id].feedback}</p>
+                            <div className="pt-1.5 border-t border-slate-200 font-semibold text-slate-800">
+                              الإجابة النموذجية المعتمدة: <span className="font-bold text-indigo-950">{q.correctAnswer}</span>
+                            </div>
+                          </div>
+                        )}
                       </div>
 
                       {/* Printed ruled paper area for physical exam */}

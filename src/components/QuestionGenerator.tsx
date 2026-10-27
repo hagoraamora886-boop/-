@@ -46,18 +46,17 @@ export const QuestionGenerator: React.FC<QuestionGeneratorProps> = ({
   const activeLesson = lessons.find((l) => l.id === selectedLessonId);
 
   const questionTypesList: { id: QuestionType; label: string; desc: string }[] = [
-    { id: 'all', label: 'مزيج شامل ومتنوع', desc: 'توليد باقة تجمع كافة الأنماط الامتحانية' },
+    { id: 'all', label: 'مزيج شامل لكافة الأنماط', desc: 'توليد باقة تجمع كافة الأنماط الامتحانية الرسمية' },
     { id: 'mcq', label: 'اختيار من متعدد (MCQ)', desc: 'أسئلة بأربعة بدائل وخيار وحيد صحيح' },
     { id: 'true_false', label: 'صواب / خطأ مع التعليل', desc: 'قياس دقة المفاهيم مع تبرير علمي' },
-    { id: 'code_trace', label: 'تتبع كود وتصحيح أخطاء', desc: 'مقاطع بايثون لتتبع المخرجات واكتشاف الثغرات' },
-    { id: 'short_answer', label: 'أسئلة مقالية وتطبيقية', desc: 'حل مشكلات برمجية وتحليل نماذج ذكية' },
+    { id: 'short_answer', label: 'أسئلة مقالية وتطبيقية', desc: 'تحليل سيناريوهات واقعية وتطبيقات المنهج' },
   ];
 
   const thinkingLevelsList: { id: ThinkingLevel; label: string; desc: string }[] = [
     { id: 'all', label: 'مستويات متدرجة وشاملة', desc: 'مزيج يغطي تدرج مستويات بلوم القياسية' },
     { id: 'remembering', label: 'التذكر والفهم', desc: 'استرجاع المصطلحات والمفاهيم النظرية' },
-    { id: 'applying', label: 'التطبيق والتحليل', desc: 'تطبيق الخوارزميات وتتبع تدفق الكود' },
-    { id: 'evaluating', label: 'التقويم والابتكار', desc: 'نقد النماذج الذكية وحل المشكلات غير المألوفة' },
+    { id: 'applying', label: 'التطبيق والتحليل', desc: 'تحليل السيناريوهات التكنولوجية والحلول التطبيقية' },
+    { id: 'evaluating', label: 'التقويم والابتكار', desc: 'نقد النماذج الذكية وحل المشكلات واتخاذ القرار' },
   ];
 
   return (
@@ -71,8 +70,11 @@ export const QuestionGenerator: React.FC<QuestionGeneratorProps> = ({
             <h2 className="text-xl font-bold text-slate-900 tracking-tight">
               إعداد وتوليد بنك الأسئلة الامتحانية
             </h2>
-            <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
-              مخصص لمعلم وطلاب مادة البرمجة والذكاء الاصطناعي — الصف الثاني بالبكالوريا المصرية
+            <p className="text-xs sm:text-sm text-slate-600 mt-1 flex flex-wrap items-center gap-2">
+              <span>مخصص لمادة البرمجة والذكاء الاصطناعي — الصف الثاني الثانوي</span>
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-gradient-to-r from-indigo-100 via-purple-100 to-sky-100 text-indigo-950 border border-indigo-200 font-bold text-xs shadow-xs">
+                ✨ إعداد سفيرة البرمجة أستاذة هاجر محمود
+              </span>
             </p>
           </div>
         </div>

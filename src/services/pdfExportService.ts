@@ -51,7 +51,7 @@ export const pdfExportService = {
         case 'true_false':
           return 'صواب أو خطأ مع التعليل';
         case 'code_trace':
-          return 'تتبع كود بايثون واكتشاف الأخطاء';
+          return 'سؤال تطبيقي وعملي';
         case 'short_answer':
           return 'سؤال مقالي وتحليلي';
         default:
@@ -125,7 +125,7 @@ export const pdfExportService = {
         if (q.codeSnippet) {
           codeSnippetHtml = `
             <div style="margin-top: 10px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; padding: 10px 12px; font-family: 'JetBrains Mono', monospace; font-size: 11px; direction: ltr; text-align: left; white-space: pre-wrap; color: #0f172a;">
-              <div style="font-weight: 600; color: #475569; font-size: 10px; border-bottom: 1px solid #e2e8f0; padding-bottom: 4px; margin-bottom: 6px;"># Python Code</div>
+              <div style="font-weight: 600; color: #475569; font-size: 10px; border-bottom: 1px solid #e2e8f0; padding-bottom: 4px; margin-bottom: 6px;">السيناريو والتطبيق العملي</div>
               <code>${q.codeSnippet.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</code>
             </div>
           `;

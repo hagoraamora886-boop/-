@@ -67,14 +67,10 @@ export const DEFAULT_LESSONS: Lesson[] = [
       'الواقع الافتراضي (VR)',
       'الحوسبة الكمومية (Quantum Computing)',
     ],
-    codeExample: `# مثال توضيحي للحوسبة الطرفية (Edge Computing) في المركبات ذاتية القيادة
-def process_sensor_frame(camera_feed):
-    # تتم المعالجة الفورية على شريحة المركبة دون انتظار استجابة الخادم السحابي
-    obstacle_detected = detect_pedestrian_edge(camera_feed)
-    if obstacle_detected:
-        apply_emergency_brakes() # استجابة خلال أجزاء من الألف من الثانية
-        return "تم تفعيل الفرامل محلياً عبر Edge AI"
-    return "المسار آمن"`,
+    codeExample: `// سيناريو عملي: المعالجة اللحظية عبر الحوسبة الطرفية (Edge Computing)
+SensorInput: [مسافة_العائق: 4 أمتار | سرعة_المركبة: 60 كم/س]
+Edge_Decision: [تفعيل مكابح الطوارئ محلياً خلال 3ms دون انتظار السحابة]
+Result: "توقف آمن للمركبة مع ضمان معايير السلامة الفورية"`,
     createdAt: '2026-09-01T08:00:00.000Z',
     updatedAt: '2026-09-01T08:00:00.000Z',
   },
@@ -99,13 +95,9 @@ def process_sensor_frame(camera_feed):
       'ظاهرة الهلوسة (Hallucination)',
       'الذكاء الضيق (Narrow AI)',
     ],
-    codeExample: `# العلاقة بين البرمجة النمطية وتعلّم الأنماط
-# 1) قواعد مبرمجة صراحة:
-def classify_text_manual(text):
-    return "Spam" if "اشترك فوراً" in text else "Normal"
-
-# 2) تعلّم الأنماط من البيانات (Machine Learning):
-# model = LogisticRegression().fit(X_training_emails, y_labels)`,
+    codeExample: `// الفرق المنهجي بين البرمجة النمطية وتعلّم الأنماط:
+// 1. قواعد مبرمجة صراحة: فحص وجود كلمات محظورة عبر شروط منطقية صريحة
+// 2. تعلّم الأنماط من البيانات (Machine Learning): تدريب النموذج على آلاف النماذج لاستنتاج النمط ذاتياً`,
     createdAt: '2026-09-05T08:00:00.000Z',
     updatedAt: '2026-09-05T08:00:00.000Z',
   },
@@ -140,11 +132,10 @@ def classify_text_manual(text):
       'مشكلة الصندوق الأسود (Black Box)',
       'الإشراف والتحقق البشري',
     ],
-    codeExample: `# محاكاة نظام توصية يعتمد على تحليل السلوك السابق
-user_history = ["برمجة بايثون", "تعلم الآلة", "أمن المعلومات"]
-def recommend_content(history, catalog):
-    recommendations = [item for item in catalog if any(tag in item['tags'] for tag in history)]
-    return recommendations`,
+    codeExample: `// محاكاة منطق نظام التوصية القائم على التفضيلات السابقة:
+سجل_المستخدم: ["تكنولوجيا المعلومات", "تعلم الآلة", "الأمن السيبراني"]
+خوارزمية_الترشيح: مطابقة اهتمامات الزائر مع وسوم المحتوى المتاح
+النتيجة: اقتراح المواد الأكثر صلة باهتمامات المستخدم تلقائياً`,
     createdAt: '2026-09-10T08:00:00.000Z',
     updatedAt: '2026-09-10T08:00:00.000Z',
   },
@@ -224,14 +215,10 @@ def audit_dataset_balance(labels):
       'عدم التنصل (Non-repudiation)',
       'المصادقة الثنائية (2FA) وفئاتها الثلاث',
     ],
-    codeExample: `# محاكاة التحقق من المصادقة الثنائية الحقيقية (عاملان من فئتين مختلفتين)
-def verify_login(entered_password, stored_password, received_otp, generated_otp):
-    factor_knowledge = (entered_password == stored_password) # المعرفة
-    factor_possession = (received_otp == generated_otp)      # الحيازة (الهاتف)
-    
-    if factor_knowledge and factor_possession:
-        return "تم تسجيل الدخول بنجاح بمصادقة ثنائية 2FA"
-    return "فشل التحقق: يجب تطابق كلا العاملين المستقلين"`,
+    codeExample: `// خوارزمية التحقق من المصادقة الثنائية الحقيقية (2FA)
+عامل_المعرفة = (كلمة_المرور_المدخلة == كلمة_المرور_المخزنة)  // ما تعرفه
+عامل_الحيازة = (رمز_OTP_المستلم == رمز_تطبيق_المصادقة)      // ما تملكه
+القرار: قبول تسجيل الدخول فقط عند تحقق كلا العاملين المستقلين بنجاح`,
     createdAt: '2026-09-20T08:00:00.000Z',
     updatedAt: '2026-09-20T08:00:00.000Z',
   },
@@ -266,15 +253,10 @@ def verify_login(entered_password, stored_password, received_otp, generated_otp)
       'نهج انعدام الثقة (Zero Trust)',
       'الأمان المحيطي التقليدي',
     ],
-    codeExample: `# محاكاة قاعدة جدار الحماية (Firewall Rule Logic)
-def firewall_filter(packet):
-    # السماح لطلبات الويب الموجهة للمنطقة المعزولة DMZ
-    if packet['destination_port'] == 443 and packet['zone'] == 'DMZ':
-        return "PASS"
-    # منع محاولات الوصول المباشر لقاعدة البيانات الداخلية من الإنترنت
-    if packet['destination_port'] == 3306 and packet['source_zone'] == 'EXTERNAL':
-        return "DROP - محاولة وصول غير مصرح بها لقاعدة البيانات"
-    return "EVALUATE_POLICY"`,
+    codeExample: `// هيكلية فحص حزم البيانات في جدار الحماية (Firewall Policy Logic)
+RULE 1: [Destination: DMZ (Port 443) -> ALLOW (HTTPS Web Traffic)]
+RULE 2: [Destination: Internal DB (Port 3306) from External -> BLOCK & LOG]
+DEFAULT: [Deny All Unauthorized Connections]`,
     createdAt: '2026-09-25T08:00:00.000Z',
     updatedAt: '2026-09-25T08:00:00.000Z',
   },
@@ -310,15 +292,11 @@ def firewall_filter(packet):
       'معادلة الخطر: التأثير × الاحتمالية',
       'مصفوفة تقييم المخاطر والأولويات',
     ],
-    codeExample: `# حساب درجة الخطر وترتيب الأولويات في مصفوفة المخاطر
-def calculate_risk(impact_score, probability_score):
-    # الدرجات من 1 (منخفض) إلى 3 (مرتفع)
-    risk_level = impact_score * probability_score
-    if risk_level >= 6:
-        return "أولوية قصوى: تدخل طارئ فوري"
-    elif risk_level >= 3:
-        return "أولوية متوسطة: خطة علاجية مجدولة"
-    return "أولوية منخفضة: مراقبة دورية"`,
+    codeExample: `// معادلة تقييم المخاطر وترتيب الأولويات في مصفوفة المخاطر
+درجة_الخطر = مستوى_التأثير (1 إلى 3) × احتمالية_الحدوث (1 إلى 3)
+- النتيجة >= 6: أولوية قصوى (تدخل طارئ لمعالجة الحادث فوراً)
+- النتيجة 3 إلى 5: أولوية متوسطة (خطة علاجية مجدولة)
+- النتيجة < 3: أولوية منخفضة (مراقبة وقبول المخاطر البسيطة)`,
     createdAt: '2026-10-01T08:00:00.000Z',
     updatedAt: '2026-10-01T08:00:00.000Z',
   },
