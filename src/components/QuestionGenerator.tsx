@@ -5,7 +5,8 @@
 
 import React from 'react';
 import { Chapter, Lesson, QuestionType, ThinkingLevel } from '../types.ts';
-import { Sparkles, BookOpen, Brain, HelpCircle, Layers, CheckCircle2, Cpu } from 'lucide-react';
+import { Sparkles, BookOpen, CheckCircle2, Cpu } from 'lucide-react';
+import { useLanguage } from '../context/LanguageContext.tsx';
 
 interface QuestionGeneratorProps {
   chapters: Chapter[];
@@ -38,6 +39,9 @@ export const QuestionGenerator: React.FC<QuestionGeneratorProps> = ({
   onSelectLevel,
   onGenerateBatch,
 }) => {
+  const { language, t, isRtl } = useLanguage();
+  const isEn = language === 'en';
+
   // Lessons matching selected chapter
   const filteredLessons = lessons.filter(
     (l) => selectedChapterId === 'all' || l.chapterId === selectedChapterId
@@ -45,19 +49,33 @@ export const QuestionGenerator: React.FC<QuestionGeneratorProps> = ({
 
   const activeLesson = lessons.find((l) => l.id === selectedLessonId);
 
-  const questionTypesList: { id: QuestionType; label: string; desc: string }[] = [
-    { id: 'all', label: 'مزيج شامل لكافة الأنماط', desc: 'توليد باقة تجمع كافة الأنماط الامتحانية الرسمية' },
-    { id: 'mcq', label: 'اختيار من متعدد (MCQ)', desc: 'أسئلة بأربعة بدائل وخيار وحيد صحيح' },
-    { id: 'true_false', label: 'صواب / خطأ مع التعليل', desc: 'قياس دقة المفاهيم مع تبرير علمي' },
-    { id: 'short_answer', label: 'أسئلة مقالية وتطبيقية', desc: 'تحليل سيناريوهات واقعية وتطبيقات المنهج' },
-  ];
+  const questionTypesList: { id: QuestionType; label: string; desc: string }[] = isEn
+    ? [
+        { id: 'all', label: 'Balanced Mix (All Types)', desc: 'Generates a balanced batch following official exam specifications' },
+        { id: 'mcq', label: 'Multiple Choice Questions (MCQ)', desc: 'Four distinct options with one indisputable correct answer' },
+        { id: 'true_false', label: 'True or False with Justification', desc: 'Assesses conceptual clarity with scientific justification' },
+        { id: 'short_answer', label: 'Essay & Scenario Questions', desc: 'Real-world problem solving and technical analysis tasks' },
+      ]
+    : [
+        { id: 'all', label: 'مزيج شامل لكافة الأنماط', desc: 'توليد باقة تجمع كافة الأنماط الامتحانية الرسمية' },
+        { id: 'mcq', label: 'اختيار من متعدد (MCQ)', desc: 'أسئلة بأربعة بدائل وخيار وحيد صحيح' },
+        { id: 'true_false', label: 'صواب / خطأ مع التعليل', desc: 'قياس دقة المفاهيم مع تبرير علمي' },
+        { id: 'short_answer', label: 'أسئلة مقالية وتطبيقية', desc: 'تحليل سيناريوهات واقعية وتطبيقات المنهج' },
+      ];
 
-  const thinkingLevelsList: { id: ThinkingLevel; label: string; desc: string }[] = [
-    { id: 'all', label: 'مستويات متدرجة وشاملة', desc: 'مزيج يغطي تدرج مستويات بلوم القياسية' },
-    { id: 'remembering', label: 'التذكر والفهم', desc: 'استرجاع المصطلحات والمفاهيم النظرية' },
-    { id: 'applying', label: 'التطبيق والتحليل', desc: 'تحليل السيناريوهات التكنولوجية والحلول التطبيقية' },
-    { id: 'evaluating', label: 'التقويم والابتكار', desc: 'نقد النماذج الذكية وحل المشكلات واتخاذ القرار' },
-  ];
+  const thinkingLevelsList: { id: ThinkingLevel; label: string; desc: string }[] = isEn
+    ? [
+        { id: 'all', label: 'Progressive (All Levels)', desc: 'Covers Bloom’s taxonomy levels comprehensively' },
+        { id: 'remembering', label: 'Remembering & Understanding', desc: 'Recalling fundamental concepts, standards, and terminology' },
+        { id: 'applying', label: 'Applying & Analysis', desc: 'Analyzing scenarios, protocols, and architectural trade-offs' },
+        { id: 'evaluating', label: 'Evaluating & Innovation', desc: 'Critiquing models, auditing security vulnerabilities, and problem solving' },
+      ]
+    : [
+        { id: 'all', label: 'مستويات متدرجة وشاملة', desc: 'مزيج يغطي تدرج مستويات بلوم القياسية' },
+        { id: 'remembering', label: 'التذكر والفهم', desc: 'استرجاع المصطلحات والمفاهيم النظرية' },
+        { id: 'applying', label: 'التطبيق والتحليل', desc: 'تحليل السيناريوهات التكنولوجية والحلول التطبيقية' },
+        { id: 'evaluating', label: 'التقويم والابتكار', desc: 'نقد النماذج الذكية وحل المشكلات واتخاذ القرار' },
+      ];
 
   return (
     <section className="bg-white/95 backdrop-blur-sm border border-slate-200/90 rounded-2xl p-5 sm:p-7 shadow-xs hover:shadow-sm transition-all print:hidden">
@@ -68,12 +86,12 @@ export const QuestionGenerator: React.FC<QuestionGeneratorProps> = ({
           </div>
           <div>
             <h2 className="text-xl font-bold text-slate-900 tracking-tight">
-              إعداد وتوليد بنك الأسئلة الامتحانية
+              {t('generatorCardTitle')}
             </h2>
             <p className="text-xs sm:text-sm text-slate-600 mt-1 flex flex-wrap items-center gap-2">
-              <span>مخصص لمادة البرمجة والذكاء الاصطناعي — الصف الثاني الثانوي</span>
+              <span>{isEn ? 'Programming and Artificial Intelligence — 2nd Secondary Grade' : 'مخصص لمادة البرمجة والذكاء الاصطناعي — الصف الثاني الثانوي'}</span>
               <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-gradient-to-r from-indigo-100 via-purple-100 to-sky-100 text-indigo-950 border border-indigo-200 font-bold text-xs shadow-xs">
-                ✨ إعداد سفيرة البرمجة أستاذة هاجر محمود
+                {t('teacherAttribution')}
               </span>
             </p>
           </div>
@@ -82,11 +100,11 @@ export const QuestionGenerator: React.FC<QuestionGeneratorProps> = ({
         {/* Engine Transparency Indicator */}
         <div className="flex items-center gap-2 text-xs text-slate-600 bg-slate-50 border border-slate-200/80 rounded-xl px-3.5 py-2 self-start md:self-auto shadow-2xs">
           <Sparkles className="w-4 h-4 text-indigo-600 shrink-0" />
-          <span className="font-medium text-slate-500">المحرك الأكاديمي:</span>
+          <span className="font-medium text-slate-500">{isEn ? 'Engine:' : 'المحرك الأكاديمي:'}</span>
           {engineStatus.hasApiKey ? (
-            <span className="font-bold text-indigo-700">Gemini 3.8 Flash (نشط)</span>
+            <span className="font-bold text-indigo-700">Gemini 3.8 Flash ({isEn ? 'Active' : 'نشط'})</span>
           ) : (
-            <span className="font-semibold text-slate-700">بنك المنهج المعتمد + ذكاء احتياطي</span>
+            <span className="font-semibold text-slate-700">{isEn ? 'Curriculum Bank + Fallback' : 'بنك المنهج المعتمد + ذكاء احتياطي'}</span>
           )}
         </div>
       </div>
@@ -97,7 +115,7 @@ export const QuestionGenerator: React.FC<QuestionGeneratorProps> = ({
           <div>
             <label className="block text-xs font-bold text-slate-700 mb-1.5 flex items-center gap-1.5">
               <span className="w-4 h-4 rounded-full bg-indigo-100 text-indigo-700 font-mono text-[10px] flex items-center justify-center font-bold">1</span>
-              <span>اختيار الفصل الدراسي</span>
+              <span>{t('unitLabel')}</span>
             </label>
             <select
               value={selectedChapterId}
@@ -112,12 +130,12 @@ export const QuestionGenerator: React.FC<QuestionGeneratorProps> = ({
                   onSelectLesson(firstLesson.id);
                 }
               }}
-              className="w-full bg-slate-50/80 hover:bg-white border border-slate-300 text-slate-900 text-sm rounded-xl p-2.5 focus:ring-2 focus:ring-indigo-400 focus:border-indigo-500 transition-all font-medium"
+              className="w-full bg-slate-50/80 hover:bg-white border border-slate-300 text-slate-900 text-sm rounded-xl p-2.5 focus:ring-2 focus:ring-indigo-400 focus:border-indigo-500 transition-all font-medium cursor-pointer"
             >
-              <option value="all">كافة فصول المنهج (شامل ومترابط)</option>
+              <option value="all">{t('allUnits')}</option>
               {chapters.map((ch) => (
                 <option key={ch.id} value={ch.id}>
-                  {ch.title}
+                  {isEn && ch.titleEn ? ch.titleEn : ch.title}
                 </option>
               ))}
             </select>
@@ -126,17 +144,17 @@ export const QuestionGenerator: React.FC<QuestionGeneratorProps> = ({
           <div>
             <label className="block text-xs font-bold text-slate-700 mb-1.5 flex items-center gap-1.5">
               <span className="w-4 h-4 rounded-full bg-sky-100 text-sky-700 font-mono text-[10px] flex items-center justify-center font-bold">2</span>
-              <span>اختيار الدرس المستهدف</span>
+              <span>{t('lessonLabel')}</span>
             </label>
             <select
               value={selectedLessonId}
               onChange={(e) => onSelectLesson(e.target.value)}
-              className="w-full bg-slate-50/80 hover:bg-white border border-slate-300 text-slate-900 text-sm rounded-xl p-2.5 focus:ring-2 focus:ring-sky-400 focus:border-sky-500 transition-all font-medium"
+              className="w-full bg-slate-50/80 hover:bg-white border border-slate-300 text-slate-900 text-sm rounded-xl p-2.5 focus:ring-2 focus:ring-sky-400 focus:border-sky-500 transition-all font-medium cursor-pointer"
             >
-              <option value="all">كافة موضوعات ودروس الفصل المحدد</option>
+              <option value="all">{t('allLessons')}</option>
               {filteredLessons.map((les) => (
                 <option key={les.id} value={les.id}>
-                  {les.title}
+                  {isEn && les.titleEn ? les.titleEn : les.title}
                 </option>
               ))}
             </select>
@@ -148,15 +166,15 @@ export const QuestionGenerator: React.FC<QuestionGeneratorProps> = ({
           <div className="bg-gradient-to-r from-sky-50/80 to-indigo-50/50 border border-sky-100/90 rounded-xl p-4 text-xs text-slate-700 shadow-2xs">
             <div className="flex items-center gap-2 font-bold text-sky-950 mb-1.5">
               <BookOpen className="w-4 h-4 text-sky-600" />
-              <span>ملخص محتوى الدرس:</span>
-              <span className="text-slate-800 font-semibold">{activeLesson.title}</span>
+              <span>{isEn ? 'Lesson Summary:' : 'ملخص محتوى الدرس:'}</span>
+              <span className="text-slate-800 font-semibold">{isEn && activeLesson.titleEn ? activeLesson.titleEn : activeLesson.title}</span>
             </div>
             <p className="line-clamp-2 text-slate-600 leading-relaxed font-normal">
               {activeLesson.content}
             </p>
             {activeLesson.keyConcepts && activeLesson.keyConcepts.length > 0 && (
               <div className="mt-2.5 flex flex-wrap items-center gap-2 text-slate-500">
-                <span className="font-semibold text-slate-800">المفاهيم المحورية:</span>
+                <span className="font-semibold text-slate-800">{isEn ? 'Key Concepts:' : 'المفاهيم المحورية:'}</span>
                 {activeLesson.keyConcepts.map((concept, idx) => (
                   <React.Fragment key={idx}>
                     <span className="text-indigo-800 font-medium">{concept}</span>
@@ -174,25 +192,25 @@ export const QuestionGenerator: React.FC<QuestionGeneratorProps> = ({
           <div>
             <label className="block text-xs font-bold text-slate-700 mb-2 flex items-center gap-1.5">
               <span className="w-4 h-4 rounded-full bg-indigo-100 text-indigo-700 font-mono text-[10px] flex items-center justify-center font-bold">3</span>
-              <span>تحديد نوع الأسئلة المطلوب</span>
+              <span>{t('typeLabel')}</span>
             </label>
             <div className="space-y-2">
-              {questionTypesList.map((t) => (
+              {questionTypesList.map((qType) => (
                 <button
-                  key={t.id}
+                  key={qType.id}
                   type="button"
-                  onClick={() => onSelectType(t.id)}
-                  className={`w-full text-right px-3.5 py-2.5 rounded-xl border text-xs transition-all flex items-start justify-between cursor-pointer ${
-                    selectedType === t.id
+                  onClick={() => onSelectType(qType.id)}
+                  className={`w-full ${isRtl ? 'text-right' : 'text-left'} px-3.5 py-2.5 rounded-xl border text-xs transition-all flex items-start justify-between cursor-pointer ${
+                    selectedType === qType.id
                       ? 'border-indigo-500 bg-gradient-to-r from-indigo-50/90 to-sky-50/60 text-indigo-950 font-medium shadow-xs ring-1 ring-indigo-400/40'
                       : 'border-slate-200 bg-white hover:border-indigo-200 hover:bg-slate-50/80 text-slate-700'
                   }`}
                 >
                   <div>
-                    <div className="font-bold text-slate-900">{t.label}</div>
-                    <div className="text-slate-500 text-[11px] mt-0.5">{t.desc}</div>
+                    <div className="font-bold text-slate-900">{qType.label}</div>
+                    <div className="text-slate-500 text-[11px] mt-0.5">{qType.desc}</div>
                   </div>
-                  {selectedType === t.id && (
+                  {selectedType === qType.id && (
                     <CheckCircle2 className="w-4 h-4 text-indigo-600 shrink-0 mt-0.5" />
                   )}
                 </button>
@@ -204,7 +222,7 @@ export const QuestionGenerator: React.FC<QuestionGeneratorProps> = ({
           <div>
             <label className="block text-xs font-bold text-slate-700 mb-2 flex items-center gap-1.5">
               <span className="w-4 h-4 rounded-full bg-indigo-100 text-indigo-700 font-mono text-[10px] flex items-center justify-center font-bold">4</span>
-              <span>تحديد مستوى التفكير (هرم بلوم والوزارة)</span>
+              <span>{t('levelLabel')}</span>
             </label>
             <div className="space-y-2">
               {thinkingLevelsList.map((lvl) => (
@@ -212,7 +230,7 @@ export const QuestionGenerator: React.FC<QuestionGeneratorProps> = ({
                   key={lvl.id}
                   type="button"
                   onClick={() => onSelectLevel(lvl.id)}
-                  className={`w-full text-right px-3.5 py-2.5 rounded-xl border text-xs transition-all flex items-start justify-between cursor-pointer ${
+                  className={`w-full ${isRtl ? 'text-right' : 'text-left'} px-3.5 py-2.5 rounded-xl border text-xs transition-all flex items-start justify-between cursor-pointer ${
                     selectedLevel === lvl.id
                       ? 'border-indigo-500 bg-gradient-to-r from-indigo-50/90 to-sky-50/60 text-indigo-950 font-medium shadow-xs ring-1 ring-indigo-400/40'
                       : 'border-slate-200 bg-white hover:border-indigo-200 hover:bg-slate-50/80 text-slate-700'
@@ -242,17 +260,19 @@ export const QuestionGenerator: React.FC<QuestionGeneratorProps> = ({
             {isGenerating ? (
               <>
                 <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                <span className="text-base">جارٍ معالجة وبناء دفعة الأسئلة وتجهيز الإجابات النموذجية...</span>
+                <span className="text-base">{t('generatingBtn')}</span>
               </>
             ) : (
               <>
                 <Sparkles className="w-5 h-5 text-sky-200 group-hover:scale-110 transition-transform" />
-                <span className="text-base font-bold">إنشاء دفعة جديدة من الأسئلة الامتحانية</span>
+                <span className="text-base font-bold">{t('generateBtn')}</span>
               </>
             )}
           </button>
           <p className="text-center text-[11px] text-slate-500 mt-2.5">
-            يتم توليد دفعة متكاملة ومتوازنة تلقائياً وفق المعايير الوزارية المصرية ونماذج الذكاء الاصطناعي
+            {isEn
+              ? 'Complete balanced examination batch automatically generated adhering to Egyptian Ministry specifications'
+              : 'يتم توليد دفعة متكاملة ومتوازنة تلقائياً وفق المعايير الوزارية المصرية ونماذج الذكاء الاصطناعي'}
           </p>
         </div>
       </div>

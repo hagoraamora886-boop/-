@@ -5,7 +5,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { Chapter, Lesson } from '../types.ts';
-import { X, Save, BookOpen, Code2, Tag, AlertCircle, Sparkles } from 'lucide-react';
+import { X, Save, BookOpen, AlertCircle } from 'lucide-react';
+import { useLanguage } from '../context/LanguageContext.tsx';
 
 interface LessonModalProps {
   isOpen: boolean;
@@ -29,6 +30,9 @@ export const LessonModal: React.FC<LessonModalProps> = ({
   editingLesson,
   chapters,
 }) => {
+  const { language, t, isRtl } = useLanguage();
+  const isEn = language === 'en';
+
   const [title, setTitle] = useState('');
   const [chapterId, setChapterId] = useState(chapters[0]?.id || 'ch-1');
   const [content, setContent] = useState('');
@@ -38,7 +42,7 @@ export const LessonModal: React.FC<LessonModalProps> = ({
 
   useEffect(() => {
     if (editingLesson) {
-      setTitle(editingLesson.title);
+      setTitle(isEn && editingLesson.titleEn ? editingLesson.titleEn : editingLesson.title);
       setChapterId(editingLesson.chapterId);
       setContent(editingLesson.content);
       setKeyConceptsStr(editingLesson.keyConcepts?.join(', ') || '');
@@ -51,23 +55,25 @@ export const LessonModal: React.FC<LessonModalProps> = ({
       setCodeExample('');
     }
     setError(null);
-  }, [editingLesson, isOpen, chapters]);
+  }, [editingLesson, isOpen, chapters, isEn]);
 
   if (!isOpen) return null;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!title.trim()) {
-      setError('يرجى إدخال عنوان الدرس');
+      setError(isEn ? 'Please enter the lesson title' : 'يرجى إدخال عنوان الدرس');
       return;
     }
     if (!content.trim()) {
-      setError('يرجى كتابة نص ومحتوى الدرس');
+      setError(isEn ? 'Please enter the lesson content' : 'يرجى كتابة نص ومحتوى الدرس');
       return;
     }
 
     const selectedChapter = chapters.find((c) => c.id === chapterId);
-    const chapterTitle = selectedChapter ? selectedChapter.title : 'فصل مخصص';
+    const chapterTitle = selectedChapter
+      ? (isEn && selectedChapter.titleEn ? selectedChapter.titleEn : selectedChapter.title)
+      : (isEn ? 'Custom Unit' : 'فصل مخصص');
 
     const keyConcepts = keyConceptsStr
       .split(/[,،]/)
@@ -87,7 +93,7 @@ export const LessonModal: React.FC<LessonModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-xs overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-xs overflow-y-auto" dir={isRtl ? 'rtl' : 'ltr'}>
       <div className="bg-white rounded-2xl border border-slate-200 max-w-2xl w-full max-h-[90vh] flex flex-col shadow-2xl animate-in fade-in zoom-in-95 duration-150">
         {/* Modal Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-slate-50/50 rounded-t-2xl">
@@ -97,10 +103,14 @@ export const LessonModal: React.FC<LessonModalProps> = ({
             </div>
             <div>
               <h3 className="text-base sm:text-lg font-bold text-slate-900">
-                {editingLesson ? 'تعديل بيانات الدرس' : 'إضافة درس جديد إلى المكتبة'}
+                {editingLesson
+                  ? (isEn ? 'Edit Lesson' : 'تعديل بيانات الدرس')
+                  : (isEn ? 'Add New Lesson to Syllabus' : 'إضافة درس جديد إلى المكتبة')}
               </h3>
               <p className="text-xs text-slate-500">
-                يتم حفظ الدرس محلياً وربطه بمولد الأسئلة ونظام التدريب فورياً
+                {isEn
+                  ? 'Lessons are stored locally and immediately connected to the question generator'
+                  : 'يتم حفظ الدرس محلياً وربطه بمولد الأسئلة ونظام التدريب فورياً'}
               </p>
             </div>
           </div>
@@ -108,7 +118,7 @@ export const LessonModal: React.FC<LessonModalProps> = ({
           <button
             type="button"
             onClick={onClose}
-            className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-xl transition-colors"
+            className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-xl transition-colors cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
@@ -126,11 +136,11 @@ export const LessonModal: React.FC<LessonModalProps> = ({
           {/* Lesson Title */}
           <div>
             <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-              عنوان الدرس <span className="text-rose-500">*</span>
+              {t('lessonTitleInput')} <span className="text-rose-500">*</span>
             </label>
             <input
               type="text"
-              placeholder="مثال: آليات التشفير والمصادقة في تطبيقات الويب الحديثة"
+              placeholder={isEn ? 'e.g. Cryptography and TLS Protocols in Modern Web Apps' : 'مثال: آليات التشفير والمصادقة في تطبيقات الويب الحديثة'}
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm text-slate-800 focus:bg-white focus:ring-2 focus:ring-sky-500/30 focus:border-sky-500 transition-all"
@@ -141,16 +151,16 @@ export const LessonModal: React.FC<LessonModalProps> = ({
           {/* Chapter Category Selection */}
           <div>
             <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-              تصنيف الدرس حسب الفصل <span className="text-rose-500">*</span>
+              {t('chapterSelectInput')} <span className="text-rose-500">*</span>
             </label>
             <select
               value={chapterId}
               onChange={(e) => setChapterId(e.target.value)}
-              className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm text-slate-800 focus:bg-white focus:ring-2 focus:ring-sky-500/30 focus:border-sky-500 transition-all"
+              className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm text-slate-800 focus:bg-white focus:ring-2 focus:ring-sky-500/30 focus:border-sky-500 transition-all cursor-pointer"
             >
               {chapters.map((ch) => (
                 <option key={ch.id} value={ch.id}>
-                  {ch.title}
+                  {isEn && ch.titleEn ? ch.titleEn : ch.title}
                 </option>
               ))}
             </select>
@@ -159,11 +169,11 @@ export const LessonModal: React.FC<LessonModalProps> = ({
           {/* Lesson Text / Content */}
           <div>
             <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-              نص ومحتوى الدرس والشرح الأكاديمي <span className="text-rose-500">*</span>
+              {t('lessonContentInput')} <span className="text-rose-500">*</span>
             </label>
             <textarea
               rows={5}
-              placeholder="اكتب المفاهيم والقواعد البرمجية ونظريات الذكاء الاصطناعي التي يشملها هذا الدرس ليتم توليد الأسئلة استناداً إليها..."
+              placeholder={isEn ? 'Describe core concepts, architecture, and theoretical foundations covered in this lesson...' : 'اكتب المفاهيم والقواعد البرمجية ونظريات الذكاء الاصطناعي التي يشملها هذا الدرس ليتم توليد الأسئلة استناداً إليها...'}
               value={content}
               onChange={(e) => setContent(e.target.value)}
               className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm text-slate-800 focus:bg-white focus:ring-2 focus:ring-sky-500/30 focus:border-sky-500 transition-all leading-relaxed"
@@ -174,11 +184,11 @@ export const LessonModal: React.FC<LessonModalProps> = ({
           {/* Key Concepts */}
           <div>
             <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-              المفاهيم المحورية والكلمات المفتاحية (افصل بينها بفواصل)
+              {t('keyConceptsInput')}
             </label>
             <input
               type="text"
-              placeholder="مثال: Loops, Time Complexity, Lists, Big-O"
+              placeholder={isEn ? 'e.g. TLS, AES, Asymmetric, Digital Signature' : 'مثال: التشفير المتماثل، مصافحة TLS، الشهادة الرقمية'}
               value={keyConceptsStr}
               onChange={(e) => setKeyConceptsStr(e.target.value)}
               className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm text-slate-800 focus:bg-white focus:ring-2 focus:ring-sky-500/30 focus:border-sky-500 transition-all"
@@ -188,13 +198,12 @@ export const LessonModal: React.FC<LessonModalProps> = ({
           {/* Code Example (Optional) */}
           <div>
             <label className="block text-xs font-semibold text-slate-700 mb-1.5 flex items-center justify-between">
-              <span>كود أو سيناريو تطبيقي توضيحي (اختياري)</span>
+              <span>{isEn ? 'Technical Code / Scenario Snippet (Optional)' : 'كود أو سيناريو تطبيقي توضيحي (اختياري)'}</span>
               <span className="text-indigo-600 font-mono text-[11px]">Code / Script</span>
             </label>
             <textarea
               rows={3}
-              placeholder="// مقطع برمجي أو سيناريو تطبيقي يوضح فكرة الدرس
-// مثال: قواعد جدار الحماية، معالجة طلبات الويب، أو منطق خوارزمي"
+              placeholder={isEn ? '// Optional code snippet or architecture rule (NO Python)\n// e.g. firewall rule, JSON payload, or REST request' : '// مقطع برمجي أو سيناريو تطبيقي يوضح فكرة الدرس\n// مثال: قواعد جدار الحماية، معالجة طلبات الويب، أو منطق خوارزمي'}
               value={codeExample}
               onChange={(e) => setCodeExample(e.target.value)}
               className="w-full px-3.5 py-2.5 bg-slate-900 text-emerald-400 font-mono text-xs rounded-xl border border-slate-800 focus:ring-2 focus:ring-sky-500/30 focus:border-sky-500 transition-all"
@@ -207,16 +216,16 @@ export const LessonModal: React.FC<LessonModalProps> = ({
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 text-xs font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-xl transition-colors"
+              className="px-4 py-2 text-xs font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-xl transition-colors cursor-pointer"
             >
-              إلغاء
+              {t('cancel')}
             </button>
             <button
               type="submit"
-              className="inline-flex items-center gap-2 px-5 py-2.5 text-xs font-semibold text-white bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-600 hover:to-indigo-700 rounded-xl transition-all shadow-sm hover:shadow"
+              className="inline-flex items-center gap-2 px-5 py-2.5 text-xs font-semibold text-white bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-600 hover:to-indigo-700 rounded-xl transition-all shadow-sm hover:shadow cursor-pointer"
             >
               <Save className="w-3.5 h-3.5" />
-              <span>{editingLesson ? 'حفظ التعديلات' : 'حفظ الدرس في المكتبة'}</span>
+              <span>{editingLesson ? t('saveChanges') : (isEn ? 'Save Lesson' : 'حفظ الدرس في المكتبة')}</span>
             </button>
           </div>
         </form>

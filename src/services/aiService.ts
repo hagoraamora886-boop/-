@@ -54,7 +54,12 @@ export const aiService = {
             thinkingLevel: request.thinkingLevel,
             questions: result.questions,
             generationSource: 'gemini-3.8-flash',
-            engineNotice: result.engineNotice || 'تم التوليد بنجاح عبر نموذج Gemini 3.8 Flash.',
+            engineNotice:
+              result.engineNotice ||
+              (request.language === 'en'
+                ? 'Generated live via Gemini 3.8 Flash for Language Schools.'
+                : 'تم التوليد بنجاح عبر نموذج Gemini 3.8 Flash.'),
+            language: request.language || 'ar',
           };
           // Persist batch to history
           storageService.saveBatch(batch);
@@ -64,6 +69,7 @@ export const aiService = {
             questions: result.questions,
             generationSource: 'gemini-3.8-flash',
             engineNotice: result.engineNotice,
+            language: request.language || 'ar',
           };
         }
       }
@@ -72,12 +78,14 @@ export const aiService = {
     }
 
     // Fallback: Real educational curriculum generator
+    const isEn = request.language === 'en';
     const fallbackQuestions = generateCurriculumQuestions(
       request.chapterId,
       request.lessonId,
       request.questionType,
       request.thinkingLevel,
-      request.lessonTitle
+      request.lessonTitle,
+      request.language || 'ar'
     );
 
     const fallbackBatch: QuestionBatch = {
@@ -91,7 +99,10 @@ export const aiService = {
       thinkingLevel: request.thinkingLevel,
       questions: fallbackQuestions,
       generationSource: 'curriculum_bank',
-      engineNotice: 'تم التوليد عبر بنك الأسئلة المنهجي المعتمد لوزارة التربية والتعليم (الصف الثاني بالبكالوريا).',
+      engineNotice: isEn
+        ? 'Generated from the Accredited Egyptian Curriculum Question Bank (Language Schools - Grade 11).'
+        : 'تم التوليد عبر بنك الأسئلة المنهجي المعتمد لوزارة التربية والتعليم (الصف الثاني بالبكالوريا).',
+      language: request.language || 'ar',
     };
     storageService.saveBatch(fallbackBatch);
 
@@ -99,7 +110,10 @@ export const aiService = {
       success: true,
       questions: fallbackQuestions,
       generationSource: 'curriculum_bank',
-      engineNotice: 'تم إنشاء هذه الأسئلة من بنك الأسئلة المنهجي المعتمد للصف الثاني الثانوي.',
+      engineNotice: isEn
+        ? 'Questions retrieved from the accredited curriculum question bank for Language Schools.'
+        : 'تم إنشاء هذه الأسئلة من بنك الأسئلة المنهجي المعتمد للصف الثاني الثانوي.',
+      language: request.language || 'ar',
     };
   },
 };

@@ -5,7 +5,6 @@
 
 import React, { useState } from 'react';
 import {
-  BookOpen,
   ShieldCheck,
   Cpu,
   Globe,
@@ -13,22 +12,23 @@ import {
   Award,
   Sparkles,
   CheckCircle2,
-  Binary,
-  Layers,
-  Lock,
   Search,
-  ExternalLink,
 } from 'lucide-react';
+import { useLanguage } from '../context/LanguageContext.tsx';
 
 export const CurriculumGuideView: React.FC = () => {
+  const { language, t, isRtl } = useLanguage();
+  const isEn = language === 'en';
   const [filterQuery, setFilterQuery] = useState('');
 
   const chaptersData = [
     {
       id: 'ch1',
-      number: 'الفصل 1',
-      title: 'تكنولوجيا المعلومات والمجتمع',
-      subtitle: 'مسار تطور الحواسيب والشبكات ونماذج الذكاء الاصطناعي وتأثيرها المجتمعي',
+      number: isEn ? 'Unit 1' : 'الفصل 1',
+      title: isEn ? 'Information Technology and Society' : 'تكنولوجيا المعلومات والمجتمع',
+      subtitle: isEn
+        ? 'Evolution of computing, network foundations, artificial intelligence systems, and ethical social impacts'
+        : 'مسار تطور الحواسيب والشبكات ونماذج الذكاء الاصطناعي وتأثيرها المجتمعي',
       color: 'indigo',
       accentBorder: 'border-indigo-500/30 hover:border-indigo-500',
       badgeBg: 'bg-indigo-50 text-indigo-700 border-indigo-200',
@@ -37,39 +37,45 @@ export const CurriculumGuideView: React.FC = () => {
       lessons: [
         {
           num: '1-1',
-          title: 'تطور تكنولوجيا المعلومات والتحول الاجتماعي',
-          details:
-            'مراحل تطور الحواسيب من الصمامات المفرغة (ENIAC) إلى المعالجات والحوسبة السحابية، قانون مور ومحدودياته الفيزيائية، التحولات الخمسة للمجتمع، والتقنيات الناشئة (الحوسبة الطرفية Edge Computing، الواقع المعزز AR، والحوسبة الكمومية).',
-          keywords: ['ENIAC', 'قانون مور', 'Edge Computing', 'الحوسبة الكمومية'],
+          title: isEn ? 'Evolution of IT and Social Transformation' : 'تطور تكنولوجيا المعلومات والتحول الاجتماعي',
+          details: isEn
+            ? 'Historical computing milestones from vacuum tubes (ENIAC) to microprocessors and cloud architecture. Moore’s Law and physical limitations (thermal leakage, quantum tunneling). Five societal shifts (Social Networks, E-commerce, Remote Work, Online Learning, Cashless Payments). Emerging tech: Edge Computing for real-time safety, AR/VR, and Quantum Computing.'
+            : 'مراحل تطور الحواسيب من الصمامات المفرغة (ENIAC) إلى المعالجات والحوسبة السحابية، قانون مور ومحدودياته الفيزيائية، التحولات الخمسة للمجتمع، والتقنيات الناشئة (الحوسبة الطرفية Edge Computing، الواقع المعزز AR، والحوسبة الكمومية).',
+          keywords: ['ENIAC', "Moore's Law", 'Edge Computing', 'Quantum Computing'],
         },
         {
           num: '1-2',
-          title: 'كيف يعمل الذكاء الاصطناعي (AI Architecture)',
-          details:
-            'التسلسل الهرمي: الذكاء الاصطناعي AI > تعلم الآلة ML > التعلم العميق DL > الذكاء التوليدي GenAI، الخلايا العصبية الاصطناعية (ANN)، الأوزان والانحيازات، ومعالجة ظاهرة الهلوسة Hallucination وضبط درجات الحرارة Temperature.',
+          title: isEn ? 'How Artificial Intelligence Works (AI Architecture)' : 'كيف يعمل الذكاء الاصطناعي (AI Architecture)',
+          details: isEn
+            ? 'Hierarchical taxonomy: Artificial Intelligence (AI) > Machine Learning (ML) > Deep Learning (DL) > Generative AI (GenAI). Artificial Neural Networks (ANN), weights and biases. Addressing AI Hallucinations and temperature parameters.'
+            : 'التسلسل الهرمي: الذكاء الاصطناعي AI > تعلم الآلة ML > التعلم العميق DL > الذكاء التوليدي GenAI، الخلايا العصبية الاصطناعية (ANN)، الأوزان والانحيازات، ومعالجة ظاهرة الهلوسة Hallucination وضبط درجات الحرارة Temperature.',
           keywords: ['ANN', 'Deep Learning', 'GenAI', 'Hallucination'],
         },
         {
           num: '1-3',
-          title: 'الذكاء الاصطناعي في الحياة اليومية والصناعة',
-          details:
-            'أنظمة التوصية، المساعدات الذكية، التعرف على الوجه، التشخيص الطبي، الصيانة التنبؤية، المركبات ذاتية القيادة، ومفهوم الصندوق الأسود (Black Box Problem).',
-          keywords: ['أنظمة التوصية', 'الصندوق الأسود', 'الصيانة التنبؤية'],
+          title: isEn ? 'AI in Daily Life and Industry' : 'الذكاء الاصطناعي في الحياة اليومية والصناعة',
+          details: isEn
+            ? 'Recommendation algorithms, voice assistants, automated facial recognition, medical diagnostic imaging, predictive maintenance in manufacturing, autonomous vehicles, and the Black Box problem.'
+            : 'أنظمة التوصية، المساعدات الذكية، التعرف على الوجه، التشخيص الطبي، الصيانة التنبؤية، المركبات ذاتية القيادة، ومفهوم الصندوق الأسود (Black Box Problem).',
+          keywords: ['Recommendation Systems', 'Black Box', 'Predictive Maintenance'],
         },
         {
           num: '1-4',
-          title: 'القضايا الأخلاقية للذكاء الاصطناعي والمواطنة الرقمية',
-          details:
-            'التحيز الخوارزمي (Algorithmic Bias)، حماية الخصوصية، الذكاء الاصطناعي القابل للتفسير (XAI)، وأركان الميثاق الأخلاقي: العدالة والشفافية والمساءلة والأمان.',
-          keywords: ['XAI', 'Algorithmic Bias', 'الخصوصية', 'المساءلة'],
+          title: isEn ? 'Ethical Issues of AI and Digital Citizenship' : 'القضايا الأخلاقية للذكاء الاصطناعي والمواطنة الرقمية',
+          details: isEn
+            ? 'Algorithmic bias origins in skewed training data, facial recognition demographic discrepancies, privacy rights, Explainable AI (XAI), and four ethical pillars: Fairness, Transparency, Privacy, and Accountability.'
+            : 'التحيز الخوارزمي (Algorithmic Bias)، حماية الخصوصية، الذكاء الاصطناعي القابل للتفسير (XAI)، وأركان الميثاق الأخلاقي: العدالة والشفافية والمساءلة والأمان.',
+          keywords: ['XAI', 'Algorithmic Bias', 'Privacy', 'Accountability'],
         },
       ],
     },
     {
       id: 'ch2',
-      number: 'الفصل 2',
-      title: 'الأمن السيبراني وحماية البيانات',
-      subtitle: 'تأمين الاتصالات، وهيكلية أمن الشبكات، وإدارة مخاطر الحوادث الرقمية',
+      number: isEn ? 'Unit 2' : 'الفصل 2',
+      title: isEn ? 'Cybersecurity & Network Defense' : 'الأمن السيبراني وحماية البيانات',
+      subtitle: isEn
+        ? 'Communication encryption, secure network perimeter design, and security incident risk management'
+        : 'تأمين الاتصالات، وهيكلية أمن الشبكات، وإدارة مخاطر الحوادث الرقمية',
       color: 'emerald',
       accentBorder: 'border-emerald-500/30 hover:border-emerald-500',
       badgeBg: 'bg-emerald-50 text-emerald-700 border-emerald-200',
@@ -78,32 +84,37 @@ export const CurriculumGuideView: React.FC = () => {
       lessons: [
         {
           num: '2-1',
-          title: 'تقنيات التشفير والمصادقة الرقمية',
-          details:
-            'بروتوكول HTTPS ومصافحة TLS ثلاثية الخطوات، التشفير المتماثل (AES) وغير المتماثل (RSA)، الشهادات والتوقيعات الرقمية لمنع التنصل (Non-repudiation)، والمصادقة متعددة العوامل 2FA (المعرفة، الحيازة، الصفة الحيوية).',
+          title: isEn ? 'Encryption & Digital Authentication Technologies' : 'تقنيات التشفير والمصادقة الرقمية',
+          details: isEn
+            ? 'HTTPS protocol and 3-step TLS Handshake. Symmetric (AES) vs Asymmetric (RSA) cryptography. Digital certificates and signatures ensuring Non-repudiation. Multi-factor authentication (MFA/2FA) across knowledge, possession, and biometrics.'
+            : 'بروتوكول HTTPS ومصافحة TLS ثلاثية الخطوات، التشفير المتماثل (AES) وغير المتماثل (RSA)، الشهادات والتوقيعات الرقمية لمنع التنصل (Non-repudiation)، والمصادقة متعددة العوامل 2FA (المعرفة، الحيازة، الصفة الحيوية).',
           keywords: ['TLS Handshake', 'RSA vs AES', '2FA', 'Non-repudiation'],
         },
         {
           num: '2-2',
-          title: 'تصميم أمن الشبكات والبنية التحتية',
-          details:
-            'جدار الحماية Firewall، الشبكة الافتراضية الخاصة VPN، المنطقة المنزوعة السلاح DMZ، استراتيجية الدفاع في العمق (Defense in Depth عبر 4 طبقات)، ومبدأ انعدام الثقة (Zero Trust Architecture).',
+          title: isEn ? 'Network Security Design & Architecture' : 'تصميم أمن الشبكات والبنية التحتية',
+          details: isEn
+            ? 'Firewalls packet inspection, Virtual Private Networks (VPN), Demilitarized Zone (DMZ) perimeter buffer, 4-tier Defense-in-Depth strategy, and modern Zero Trust Architecture.'
+            : 'جدار الحماية Firewall، الشبكة الافتراضية الخاصة VPN، المنطقة المنزوعة السلاح DMZ، استراتيجية الدفاع في العمق (Defense in Depth عبر 4 طبقات)، ومبدأ انعدام الثقة (Zero Trust Architecture).',
           keywords: ['Zero Trust', 'Firewall', 'DMZ', 'Defense in Depth'],
         },
         {
           num: '2-3',
-          title: 'الاستجابة للحوادث السيبرانية وإدارة المخاطر',
-          details:
-            'المراحل الست للاستجابة للحوادث: التحضير، الاكتشاف والتحليل، الاحتواء، الاستئصال، الاستعادة، والدروس المستفادة، ومعادلة مصفوفة المخاطر: درجة الخطر = مستوى التأثير × احتمالية الحدوث.',
-          keywords: ['مصفوفة المخاطر', 'مراحل الاستجابة الست', 'الاستئصال'],
+          title: isEn ? 'Incident Response and Risk Assessment' : 'الاستجابة للحوادث السيبرانية وإدارة المخاطر',
+          details: isEn
+            ? 'Six sequential stages of incident response: Preparation, Detection & Analysis, Containment (mandatory before eradication), Eradication, Recovery, and Lessons Learned. Risk formula: Risk = Impact × Likelihood.'
+            : 'المراحل الست للاستجابة للحوادث: التحضير، الاكتشاف والتحليل، الاحتواء، الاستئصال، الاستعادة، والدروس المستفادة، ومعادلة مصفوفة المخاطر: درجة الخطر = مستوى التأثير × احتمالية الحدوث.',
+          keywords: ['Risk Matrix', 'Six Response Stages', 'Containment'],
         },
       ],
     },
     {
       id: 'ch3',
-      number: 'الفصل 3',
-      title: 'تطبيقات الويب وهيكلية النظم',
-      subtitle: 'هندسة الويب، بروتوكولات الاتصال، والواجهة الأمامية التفاعلية',
+      number: isEn ? 'Unit 3' : 'الفصل 3',
+      title: isEn ? 'Web Applications Architecture' : 'تطبيقات الويب وهيكلية النظم',
+      subtitle: isEn
+        ? 'Client-server architecture, communication protocols, and interactive frontend engineering'
+        : 'هندسة الويب، بروتوكولات الاتصال، والواجهة الأمامية التفاعلية',
       color: 'sky',
       accentBorder: 'border-sky-500/30 hover:border-sky-500',
       badgeBg: 'bg-sky-50 text-sky-700 border-sky-200',
@@ -112,32 +123,37 @@ export const CurriculumGuideView: React.FC = () => {
       lessons: [
         {
           num: '3-1',
-          title: 'البنية العامة لتطبيقات الويب',
-          details:
-            'نموذج العميل والخادم Client-Server، دور متصفح الويب (Client)، خادم الويب وخادم التطبيقات، وقواعد البيانات العلائقية وغير العلائقية.',
+          title: isEn ? 'Web Applications General Architecture' : 'البنية العامة لتطبيقات الويب',
+          details: isEn
+            ? 'Client-Server architecture, web browser (Client) responsibilities, application and web servers, and persistent database management systems.'
+            : 'نموذج العميل والخادم Client-Server، دور متصفح الويب (Client)، خادم الويب وخادم التطبيقات، وقواعد البيانات العلائقية وغير العلائقية.',
           keywords: ['Client-Server', 'Web Server', 'Database Engine'],
         },
         {
           num: '3-2',
-          title: 'بروتوكولات وطرق الاتصال وتبادل البيانات',
-          details:
-            'بروتوكولات HTTP/HTTPS، طرق الطلب (GET, POST, PUT, DELETE)، أكواد الحالة (200 OK, 404 Not Found, 500 Server Error)، وتنسيق تبادل البيانات القياسي JSON عبر RESTful APIs.',
+          title: isEn ? 'Web Communication Protocols & Data Exchange' : 'بروتوكولات وطرق الاتصال وتبادل البيانات',
+          details: isEn
+            ? 'HTTP/HTTPS protocols, request methods (GET, POST, PUT, DELETE), standard status codes (200 OK, 404 Not Found, 500 Server Error), and lightweight JSON structured data interchange via RESTful APIs.'
+            : 'بروتوكولات HTTP/HTTPS، طرق الطلب (GET, POST, PUT, DELETE)، أكواد الحالة (200 OK, 404 Not Found, 500 Server Error)، وتنسيق تبادل البيانات القياسي JSON عبر RESTful APIs.',
           keywords: ['REST APIs', 'HTTP Methods', 'JSON Data', 'Status Codes'],
         },
         {
           num: '3-3',
-          title: 'أساسيات وتكامل تقنيات الواجهة الأمامية',
-          details:
-            'تكامل HTML5 للهيكلة الدلالية (Semantic Tags)، و CSS3 للتنسيق الشبكي Flexbox/Grid والتجاوب، و JavaScript للبرمجة الحركية والتعامل مع شجرة عناصر DOM.',
+          title: isEn ? 'Frontend Engineering Fundamentals' : 'أساسيات وتكامل تقنيات الواجهة الأمامية',
+          details: isEn
+            ? 'HTML5 semantic structural tags, CSS3 responsive grid layouts and media queries, and JavaScript event listeners for DOM manipulation.'
+            : 'تكامل HTML5 للهيكلة الدلالية (Semantic Tags)، و CSS3 للتنسيق الشبكي Flexbox/Grid والتجاوب، و JavaScript للبرمجة الحركية والتعامل مع شجرة عناصر DOM.',
           keywords: ['HTML5 Semantic', 'CSS Flex/Grid', 'DOM Manipulation'],
         },
       ],
     },
     {
       id: 'ch4',
-      number: 'الفصل 4',
-      title: 'تصميم الويب والوسائط الرقمية',
-      subtitle: 'هندسة تجربة المستخدم UX، تحسين الوسائط، والتحسين التكراري',
+      number: isEn ? 'Unit 4' : 'الفصل 4',
+      title: isEn ? 'Web Design & User Experience' : 'تصميم الويب والوسائط الرقمية',
+      subtitle: isEn
+        ? 'User experience (UX) engineering, digital media optimization, and iterative improvement'
+        : 'هندسة تجربة المستخدم UX، تحسين الوسائط، والتحسين التكراري',
       color: 'purple',
       accentBorder: 'border-purple-500/30 hover:border-purple-500',
       badgeBg: 'bg-purple-50 text-purple-700 border-purple-200',
@@ -146,170 +162,149 @@ export const CurriculumGuideView: React.FC = () => {
       lessons: [
         {
           num: '4-1',
-          title: 'أنواع الوسائط الرقمية وخصائص الضغط',
-          details:
-            'الصور النقطية Raster (PNG, JPEG) مقابل الصور المتجهة Vector (SVG)، صيغ الفيديو والصوتيات، الفرق بين الضغط الفاقد Lossy والضغط غير الفاقد Lossless وتطبيقاتهما على الويب.',
-          keywords: ['Vector SVG', 'Raster Images', 'Lossy vs Lossless'],
+          title: isEn ? 'Digital Media Types & Compression Characteristics' : 'أنواع الوسائط الرقمية وخصائص الضغط',
+          details: isEn
+            ? 'Pixel-based raster graphics (JPEG, PNG, WebP) vs mathematical vector graphics (SVG). Lossy vs lossless compression trade-offs for web performance.'
+            : 'الصور النقطية Raster (JPEG, PNG) مقابل الصور المتجهة Vector (SVG)، تقنيات الضغط Lossy و Lossless وتأثيرها على سرعة تحميل الصفحات.',
+          keywords: ['SVG vs PNG', 'Lossy vs Lossless', 'Web Performance'],
         },
         {
           num: '4-2',
-          title: 'تصميم المعلومات وتجربة المستخدم (UI / UX)',
-          details:
-            'الفرق بين واجهة المستخدم UI وتجربة المستخدم UX، هيكلية المعلومات Information Architecture، سهولة الاستخدام Usability، وإمكانية الوصول الشاملة لذوي الاحتياجات الخاصة (a11y - WCAG).',
-          keywords: ['UI vs UX', 'Usability', 'Accessibility a11y', 'Wireframes'],
+          title: isEn ? 'Information Architecture & UX Principles' : 'تصميم المعلومات وتجربة المستخدم (UI/UX)',
+          details: isEn
+            ? 'Information Architecture (IA), intuitive navigation, accessibility (a11y) standards including alt attributes and color contrast ratios.'
+            : 'هيكلية المعلومات (IA)، تجربة المستخدم (UX)، إمكانية الوصول الشاملة (Accessibility - a11y) ومعايير تباين الألوان.',
+          keywords: ['UX/UI', 'Information Architecture', 'Accessibility a11y'],
         },
         {
           num: '4-3',
-          title: 'أساليب قياس وتقييم المواقع الإلكترونية',
-          details:
-            'فحص مؤشرات الأداء والسرعة (Core Web Vitals)، التوافقية Cross-Browser، واختبار سهولة الاستخدام مع مستخدمين حقيقيين ومراجعة خرائط الحرارة Heatmaps.',
-          keywords: ['Core Web Vitals', 'Cross-Browser', 'Heatmaps'],
-        },
-        {
-          num: '4-4',
-          title: 'دورة التحسين المستمر والتكراري (Iterative Design)',
-          details:
-            'حلقة التصميم والاختبار والتحليل، اختبار أ/ب (A/B Testing) لتحسين معدلات التفاعل، وجمع التغذية الراجعة من المستخدمين وتطبيق منهجية Agile التكرارية.',
-          keywords: ['A/B Testing', 'Feedback Loop', 'Agile Workflow'],
+          title: isEn ? 'Iterative Improvement & A/B Testing' : 'أساليب التقييم والتحسين التكراري',
+          details: isEn
+            ? 'Iterative development cycle: Design → Test → Feedback → Refine. Empirical A/B testing methodologies comparing UI variants with conversion data.'
+            : 'دورة التطوير التكرارية: التصميم -> الاختبار -> جمع الملاحظات -> التحسين. اختبار أ/ب (A/B Testing) المبني على قياس تفاعل المستخدمين.',
+          keywords: ['A/B Testing', 'Iterative Design', 'User Feedback'],
         },
       ],
     },
   ];
 
-  const filteredChapters = chaptersData.map((ch) => {
-    if (!filterQuery.trim()) return ch;
-    const q = filterQuery.toLowerCase();
-    const matchingLessons = ch.lessons.filter(
+  const filteredChapters = chaptersData.map((ch) => ({
+    ...ch,
+    lessons: ch.lessons.filter(
       (l) =>
-        l.title.toLowerCase().includes(q) ||
-        l.details.toLowerCase().includes(q) ||
-        l.keywords.some((k) => k.toLowerCase().includes(q))
-    );
-    return {
-      ...ch,
-      lessons: matchingLessons,
-    };
-  }).filter((ch) => ch.lessons.length > 0 || ch.title.toLowerCase().includes(filterQuery.toLowerCase()));
+        filterQuery.trim() === '' ||
+        l.title.toLowerCase().includes(filterQuery.toLowerCase()) ||
+        l.details.toLowerCase().includes(filterQuery.toLowerCase()) ||
+        l.keywords.some((kw) => kw.toLowerCase().includes(filterQuery.toLowerCase()))
+    ),
+  })).filter((ch) => ch.lessons.length > 0);
 
   return (
     <div className="space-y-6">
-      {/* Hero Header */}
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 p-6 sm:p-8 text-white shadow-lg border border-indigo-900/40">
-        <div className="absolute top-0 left-0 w-80 h-80 bg-sky-500/10 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute bottom-0 right-0 w-80 h-80 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
-
-        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
-          <div className="space-y-2 max-w-2xl">
-            <div className="flex items-center gap-2 text-xs font-medium text-sky-300">
-              <span className="inline-flex items-center gap-1 bg-sky-500/20 text-sky-200 border border-sky-400/30 px-2.5 py-0.5 rounded-full">
-                <Sparkles className="w-3 h-3 text-sky-300" />
-                طبعة 2026 المعتمدة
-              </span>
-              <span aria-hidden="true" className="text-slate-500">·</span>
-              <span className="text-slate-300">وزارة التربية والتعليم والتعليم الفني - مصر</span>
+      {/* Top Banner */}
+      <div className="bg-white border border-slate-200 rounded-2xl p-5 sm:p-7 shadow-sm">
+        <div className="flex flex-col md:flex-row md:items-center justify-between pb-4 border-b border-slate-100 gap-4">
+          <div>
+            <div className="flex items-center gap-2 text-xs font-semibold text-indigo-600 mb-1">
+              <Sparkles className="w-3.5 h-3.5" />
+              <span>{isEn ? 'Official Egyptian Ministry Curriculum' : 'المقرر المعتمد لوزارة التربية والتعليم'}</span>
             </div>
-            <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white font-serif">
-              دليل مقرر البرمجة والذكاء الاصطناعي
+            <h2 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
+              {t('curriculumGuideTitle')}
             </h2>
-            <p className="text-sm text-slate-300 leading-relaxed">
-              الصف الثاني الثانوي — البكالوريا المصرية (إشراف البكالوريا الدولية IB). يغطي المنهج تكنولوجيا المعلومات، الذكاء الاصطناعي التوليدي، الأمن السيبراني، وتطوير الويب.
+            <p className="text-xs sm:text-sm text-slate-500 mt-1">
+              {t('curriculumGuideSubtitle')}
             </p>
           </div>
 
-          {/* Quick Metrics */}
-          <div className="grid grid-cols-3 gap-2.5 sm:gap-3 bg-white/5 border border-white/10 backdrop-blur-md rounded-xl p-3 sm:p-4 text-center shrink-0">
-            <div>
-              <div className="text-xl sm:text-2xl font-black text-sky-400">4</div>
-              <div className="text-[11px] text-slate-300">فصول دراسية</div>
-            </div>
-            <div className="border-r border-white/10 pr-2.5 sm:pr-3">
-              <div className="text-xl sm:text-2xl font-black text-emerald-400">14</div>
-              <div className="text-[11px] text-slate-300">درساً تفصيلياً</div>
-            </div>
-            <div className="border-r border-white/10 pr-2.5 sm:pr-3">
-              <div className="text-xl sm:text-2xl font-black text-amber-400">100%</div>
-              <div className="text-[11px] text-slate-300">مواصفات الوزارة</div>
-            </div>
+          <div className="flex items-center gap-2">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-xs font-medium text-slate-700">
+              <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+              <span>{isEn ? 'Grade 11 Approved' : 'معتمد للثانوية العامة'}</span>
+            </span>
           </div>
         </div>
 
-        {/* Search bar inside header */}
-        <div className="relative z-10 mt-6 pt-5 border-t border-white/10">
-          <div className="relative max-w-xl">
-            <Search className="w-4 h-4 text-slate-400 absolute right-3.5 top-1/2 -translate-y-1/2" />
-            <input
-              type="text"
-              placeholder="ابحث في موضوعات المنهج، المصطلحات، المفاهيم (مثل TLS، Zero Trust، GenAI)..."
-              value={filterQuery}
-              onChange={(e) => setFilterQuery(e.target.value)}
-              className="w-full pl-3 pr-10 py-2.5 bg-white/10 border border-white/20 focus:border-sky-400 rounded-xl text-xs sm:text-sm text-white placeholder:text-slate-400 focus:outline-hidden focus:ring-2 focus:ring-sky-400/30 transition-all"
-            />
-          </div>
+        {/* Search within curriculum */}
+        <div className="mt-4 relative">
+          <Search className={`w-4 h-4 text-slate-400 absolute top-1/2 -translate-y-1/2 ${isRtl ? 'right-3.5' : 'left-3.5'}`} />
+          <input
+            type="text"
+            placeholder={isEn ? 'Search curriculum standards, topics, and keywords...' : 'ابحث في موضوعات المنهج، المفاهيم، ومخرجات التعلم المستهدفة...'}
+            value={filterQuery}
+            onChange={(e) => setFilterQuery(e.target.value)}
+            className={`w-full py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm text-slate-800 placeholder:text-slate-400 focus:bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all ${
+              isRtl ? 'pr-9 pl-3' : 'pl-9 pr-3'
+            }`}
+          />
         </div>
       </div>
 
-      {/* Chapters Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      {/* Chapters Accordion / Grid */}
+      <div className="space-y-6">
         {filteredChapters.map((ch) => {
-          const IconComp = ch.icon;
+          const Icon = ch.icon;
+
           return (
             <div
               key={ch.id}
-              className={`bg-white border rounded-2xl p-5 sm:p-6 shadow-sm hover:shadow-md transition-all duration-200 flex flex-col justify-between ${ch.accentBorder}`}
+              className={`bg-white border rounded-2xl p-5 sm:p-6 shadow-sm transition-all duration-200 ${ch.accentBorder}`}
             >
-              <div>
-                {/* Chapter Header */}
-                <div className="flex items-start justify-between gap-3 mb-3">
-                  <div className="flex items-center gap-3">
-                    <div
-                      className={`w-11 h-11 rounded-xl bg-gradient-to-tr ${ch.gradient} flex items-center justify-center text-white shadow-sm shrink-0`}
-                    >
-                      <IconComp className="w-5 h-5" />
-                    </div>
-                    <div>
-                      <span className="text-xs font-bold text-slate-400 block">{ch.number}</span>
-                      <h3 className="text-lg font-bold text-slate-900 tracking-tight leading-tight">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-slate-100 gap-3">
+                <div className="flex items-center gap-3">
+                  <div className={`w-10 h-10 rounded-xl bg-gradient-to-tr ${ch.gradient} flex items-center justify-center text-white shadow-xs`}>
+                    <Icon className="w-5 h-5 text-white" />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className={`text-[11px] font-bold px-2 py-0.5 rounded border ${ch.badgeBg}`}>
+                        {ch.number}
+                      </span>
+                      <h3 className="text-base sm:text-lg font-bold text-slate-900">
                         {ch.title}
                       </h3>
                     </div>
+                    <p className="text-xs text-slate-500 mt-0.5">{ch.subtitle}</p>
                   </div>
                 </div>
 
-                <p className="text-xs text-slate-600 mb-4 leading-relaxed">{ch.subtitle}</p>
-
-                {/* Lessons list */}
-                <div className="space-y-2.5">
-                  {ch.lessons.map((les) => (
-                    <div
-                      key={les.num}
-                      className="p-3 bg-slate-50/80 hover:bg-slate-50 rounded-xl border border-slate-100 transition-colors"
-                    >
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="text-xs font-bold text-indigo-600 bg-indigo-50 border border-indigo-100 px-2 py-0.5 rounded-md shrink-0">
-                          {les.num}
-                        </span>
-                        <h4 className="text-xs sm:text-sm font-bold text-slate-900">
-                          {les.title}
-                        </h4>
-                      </div>
-                      <p className="text-xs text-slate-600 leading-relaxed pr-8">
-                        {les.details}
-                      </p>
-
-                      {/* Keywords / Tags */}
-                      <div className="mt-2 pr-8 flex flex-wrap items-center gap-1.5 text-[11px] text-slate-500 font-mono">
-                        {les.keywords.map((kw, i) => (
-                          <span
-                            key={i}
-                            className="bg-white border border-slate-200 text-slate-700 px-1.5 py-0.5 rounded text-[10px]"
-                          >
-                            {kw}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  ))}
+                <div className="text-xs text-slate-400 font-medium">
+                  {ch.lessons.length} {isEn ? 'Topics' : 'موضوعات'}
                 </div>
+              </div>
+
+              {/* Lessons details */}
+              <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+                {ch.lessons.map((les) => (
+                  <div
+                    key={les.num}
+                    className="p-4 rounded-xl border border-slate-200/80 bg-slate-50/60 hover:bg-slate-50 hover:border-slate-300 transition-colors"
+                  >
+                    <div className="flex items-center gap-2 mb-1.5">
+                      <span className="w-6 h-6 rounded-lg bg-white border border-slate-200 text-slate-800 text-xs font-bold font-mono flex items-center justify-center shrink-0">
+                        {les.num}
+                      </span>
+                      <h4 className="text-sm font-bold text-slate-900 leading-snug">
+                        {les.title}
+                      </h4>
+                    </div>
+
+                    <p className="text-xs text-slate-600 leading-relaxed mt-2">
+                      {les.details}
+                    </p>
+
+                    <div className="mt-3 flex flex-wrap items-center gap-1.5">
+                      {les.keywords.map((kw, i) => (
+                        <span
+                          key={i}
+                          className="bg-white border border-slate-200 text-slate-600 px-2 py-0.5 rounded text-[10px] font-mono"
+                        >
+                          {kw}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
           );
@@ -323,62 +318,67 @@ export const CurriculumGuideView: React.FC = () => {
             <Award className="w-4 h-4" />
           </div>
           <h3 className="text-lg font-bold text-slate-900">
-            مواصفات الورقة الامتحانية وتوزيع مستويات التفكير (هرم بلوم والمركز القومي للامتحانات)
+            {t('curriculumWeightTitle')}
           </h3>
         </div>
         <p className="text-xs text-slate-500 mb-5">
-          النسب المعتمدة للامتحانات الرسمية بالبكالوريا المصرية لضمان شمولية التقييم والعدالة التربوية:
+          {isEn
+            ? 'Accredited weight ratios for Egyptian Baccalaureate official exam specifications:'
+            : 'النسب المعتمدة للامتحانات الرسمية بالبكالوريا المصرية لضمان شمولية التقييم والعدالة التربوية:'}
         </p>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {/* Level 1 */}
           <div className="p-4 bg-gradient-to-b from-sky-50/50 to-white border border-sky-200/80 rounded-xl relative overflow-hidden">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-xs font-bold text-sky-800">التذكر والفهم</span>
+              <span className="text-xs font-bold text-sky-800">{t('levelRem')}</span>
               <span className="text-sm font-extrabold text-sky-600 bg-sky-100/80 px-2 py-0.5 rounded-md">
                 30%
               </span>
             </div>
-            {/* Visual Bar */}
             <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden mb-3">
               <div className="bg-sky-500 h-full rounded-full" style={{ width: '30%' }} />
             </div>
             <p className="text-xs text-slate-600 leading-relaxed">
-              استرجاع المصطلحات والمفاهيم الأساسية: خطوات مصافحة TLS، مراحل الاستجابة الست للحوادث، قانون مور ومحدودياته، والفرق بين التشفير المتماثل وغير المتماثل.
+              {isEn
+                ? 'Recalling basic definitions and concepts: TLS handshake sequence, six stages of incident response, Moore’s Law physical boundaries, and symmetric vs asymmetric encryption differences.'
+                : 'استرجاع المصطلحات والمفاهيم الأساسية: خطوات مصافحة TLS، مراحل الاستجابة الست للحوادث، قانون مور ومحدودياته، والفرق بين التشفير المتماثل وغير المتماثل.'}
             </p>
           </div>
 
           {/* Level 2 */}
           <div className="p-4 bg-gradient-to-b from-indigo-50/50 to-white border border-indigo-200/80 rounded-xl relative overflow-hidden">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-xs font-bold text-indigo-800">التطبيق والتحليل</span>
+              <span className="text-xs font-bold text-indigo-800">{t('levelApp')}</span>
               <span className="text-sm font-extrabold text-indigo-600 bg-indigo-100/80 px-2 py-0.5 rounded-md">
                 50%
               </span>
             </div>
-            {/* Visual Bar */}
             <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden mb-3">
               <div className="bg-indigo-600 h-full rounded-full" style={{ width: '50%' }} />
             </div>
             <p className="text-xs text-slate-600 leading-relaxed">
-              تحليل سيناريوهات الويب والشبكات، حساب درجة الخطر في مصفوفة المخاطر (درجة الخطر = التأثير × الاحتمالية)، تحليل استخدام الحوسبة الطرفية في القيادة الذاتية، وتحديد فئات 2FA.
+              {isEn
+                ? 'Applying protocols in scenarios, calculating risk scores (Risk = Impact × Likelihood), analyzing edge computing latency in self-driving cars, and evaluating multi-factor authentication categories.'
+                : 'تحليل سيناريوهات الويب والشبكات، حساب درجة الخطر في مصفوفة المخاطر (درجة الخطر = التأثير × الاحتمالية)، تحليل استخدام الحوسبة الطرفية في القيادة الذاتية، وتحديد فئات 2FA.'}
             </p>
           </div>
 
           {/* Level 3 */}
           <div className="p-4 bg-gradient-to-b from-purple-50/50 to-white border border-purple-200/80 rounded-xl relative overflow-hidden">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-xs font-bold text-purple-800">التقويم والابتكار</span>
+              <span className="text-xs font-bold text-purple-800">{t('levelEval')}</span>
               <span className="text-sm font-extrabold text-purple-600 bg-purple-100/80 px-2 py-0.5 rounded-md">
                 20%
               </span>
             </div>
-            {/* Visual Bar */}
             <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden mb-3">
               <div className="bg-purple-600 h-full rounded-full" style={{ width: '20%' }} />
             </div>
             <p className="text-xs text-slate-600 leading-relaxed">
-              نقد واقتراح الحلول الأمنية، كشف التحيز الخوارزمي في البيانات، تقييم مخاطر استعادة النسخ الاحتياطية قبل الاستئصال، ومقارنة نهج Zero Trust بالأمان المحيطي الكلاسيكي.
+              {isEn
+                ? 'Critiquing security architectures, detecting dataset algorithmic bias, evaluating the risks of premature recovery before eradication, and comparing Zero Trust with classical perimeter defense.'
+                : 'نقد واقتراح الحلول الأمنية، كشف التحيز الخوارزمي في البيانات، تقييم مخاطر استعادة النسخ الاحتياطية قبل الاستئصال، ومقارنة نهج Zero Trust بالأمان المحيطي الكلاسيكي.'}
             </p>
           </div>
         </div>

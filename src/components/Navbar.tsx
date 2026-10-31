@@ -4,7 +4,8 @@
  */
 
 import React from 'react';
-import { BookOpen, Sparkles, Layers, FileText, Plus } from 'lucide-react';
+import { Sparkles, Plus, Globe } from 'lucide-react';
+import { useLanguage } from '../context/LanguageContext.tsx';
 
 interface NavbarProps {
   activeTab: 'generator' | 'library' | 'saved' | 'curriculum';
@@ -17,10 +18,12 @@ export const Navbar: React.FC<NavbarProps> = ({
   onSelectTab,
   onOpenNewLessonModal,
 }) => {
+  const { language, toggleLanguage, t } = useLanguage();
+
   return (
     <header className="sticky top-0 z-40 bg-slate-900/95 backdrop-blur-md border-b border-slate-800 text-white shadow-md print:hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between gap-8 h-16">
+        <div className="flex items-center justify-between gap-4 sm:gap-8 h-16">
           {/* Zone 1: Single text element wordmark */}
           <div className="flex items-center gap-3 shrink-0">
             <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-500 via-sky-500 to-teal-400 p-0.5 shadow-sm shadow-sky-500/30 flex items-center justify-center">
@@ -34,65 +37,85 @@ export const Navbar: React.FC<NavbarProps> = ({
                 e.preventDefault();
                 onSelectTab('generator');
               }}
-              className="text-lg sm:text-xl font-bold tracking-tight text-white hover:text-sky-300 transition-colors whitespace-nowrap shrink-0 flex items-center gap-2"
+              className="text-base sm:text-xl font-bold tracking-tight text-white hover:text-sky-300 transition-colors whitespace-nowrap shrink-0 flex items-center gap-2"
             >
-              <span>مساعد البرمجة والذكاء الاصطناعي</span>
+              <span>{t('appTitle')}</span>
             </a>
           </div>
 
-          {/* Zone 2: 4 clean single-line text navigation links */}
+          {/* Zone 2: Navigation Links */}
           <nav className="hidden md:flex items-center gap-6 text-sm font-medium text-slate-300">
             <button
               onClick={() => onSelectTab('generator')}
-              className={`hover:text-white transition-all whitespace-nowrap shrink-0 pb-1 border-b-2 ${
+              className={`hover:text-white transition-all whitespace-nowrap shrink-0 pb-1 border-b-2 cursor-pointer ${
                 activeTab === 'generator'
                   ? 'border-sky-400 text-sky-300 font-semibold shadow-xs'
                   : 'border-transparent text-slate-400'
               }`}
             >
-              مولد الأسئلة
+              {t('navGenerator')}
             </button>
             <button
               onClick={() => onSelectTab('library')}
-              className={`hover:text-white transition-all whitespace-nowrap shrink-0 pb-1 border-b-2 ${
+              className={`hover:text-white transition-all whitespace-nowrap shrink-0 pb-1 border-b-2 cursor-pointer ${
                 activeTab === 'library'
                   ? 'border-sky-400 text-sky-300 font-semibold shadow-xs'
                   : 'border-transparent text-slate-400'
               }`}
             >
-              مكتبة الدروس
+              {t('navLibrary')}
             </button>
             <button
               onClick={() => onSelectTab('saved')}
-              className={`hover:text-white transition-all whitespace-nowrap shrink-0 pb-1 border-b-2 ${
+              className={`hover:text-white transition-all whitespace-nowrap shrink-0 pb-1 border-b-2 cursor-pointer ${
                 activeTab === 'saved'
                   ? 'border-sky-400 text-sky-300 font-semibold shadow-xs'
                   : 'border-transparent text-slate-400'
               }`}
             >
-              النماذج المحفوظة
+              {t('navSaved')}
             </button>
             <button
               onClick={() => onSelectTab('curriculum')}
-              className={`hover:text-white transition-all whitespace-nowrap shrink-0 pb-1 border-b-2 ${
+              className={`hover:text-white transition-all whitespace-nowrap shrink-0 pb-1 border-b-2 cursor-pointer ${
                 activeTab === 'curriculum'
                   ? 'border-sky-400 text-sky-300 font-semibold shadow-xs'
                   : 'border-transparent text-slate-400'
               }`}
             >
-              دليل المنهج
+              {t('navCurriculum')}
             </button>
           </nav>
 
-          {/* Zone 3: 1 primary action */}
-          <div className="flex items-center gap-3 shrink-0">
+          {/* Zone 3: Actions - Language Toggle & Add Lesson */}
+          <div className="flex items-center gap-2.5 shrink-0">
+            {/* Language Switcher Button for Egyptian Language Schools */}
+            <button
+              type="button"
+              onClick={toggleLanguage}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-sky-300 border border-slate-700 hover:border-sky-500/50 transition-all cursor-pointer shadow-xs active:scale-95"
+              title={
+                language === 'ar'
+                  ? 'تحويل الأداة بالكامل للغة الإنجليزية لمدارس اللغات (Switch to English for Language Schools)'
+                  : 'Switch application to Arabic (التحويل للغة العربية)'
+              }
+              aria-label={t('langAria')}
+            >
+              <Globe className="w-3.5 h-3.5 text-sky-400" />
+              <span className="font-medium">{t('langToggle')}</span>
+              <span className="text-[10px] px-1 py-0.5 rounded bg-sky-500/20 text-sky-200 uppercase font-mono font-bold tracking-wider">
+                {language === 'ar' ? 'EN' : 'عربي'}
+              </span>
+            </button>
+
+            {/* Primary Action: Add Lesson */}
             <button
               onClick={onOpenNewLessonModal}
-              className="inline-flex items-center gap-2 px-3.5 py-2 text-xs sm:text-sm font-semibold text-slate-900 bg-gradient-to-r from-sky-300 via-sky-400 to-indigo-300 hover:from-sky-200 hover:to-indigo-200 active:scale-95 rounded-lg transition-all whitespace-nowrap shrink-0 shadow-sm shadow-sky-500/20"
-              title="إضافة درس جديد لمكتبتك وحفظه"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 text-xs sm:text-sm font-semibold text-slate-900 bg-gradient-to-r from-sky-300 via-sky-400 to-indigo-300 hover:from-sky-200 hover:to-indigo-200 active:scale-95 rounded-lg transition-all whitespace-nowrap shrink-0 shadow-sm shadow-sky-500/20 cursor-pointer"
+              title={t('navAddLesson')}
             >
               <Plus className="w-4 h-4 text-slate-950" />
-              <span>إضافة درس جديد</span>
+              <span className="hidden sm:inline">{t('navAddLesson')}</span>
             </button>
           </div>
         </div>
@@ -107,7 +130,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 : 'text-slate-400 hover:text-white'
             }`}
           >
-            مولد الأسئلة
+            {t('navGenerator')}
           </button>
           <button
             onClick={() => onSelectTab('library')}
@@ -117,7 +140,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 : 'text-slate-400 hover:text-white'
             }`}
           >
-            مكتبة الدروس
+            {t('navLibrary')}
           </button>
           <button
             onClick={() => onSelectTab('saved')}
@@ -127,7 +150,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 : 'text-slate-400 hover:text-white'
             }`}
           >
-            النماذج المحفوظة
+            {t('navSaved')}
           </button>
           <button
             onClick={() => onSelectTab('curriculum')}
@@ -137,7 +160,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 : 'text-slate-400 hover:text-white'
             }`}
           >
-            دليل المنهج
+            {t('navCurriculum')}
           </button>
         </div>
       </div>

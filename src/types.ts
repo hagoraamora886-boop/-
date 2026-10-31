@@ -19,15 +19,20 @@ export interface QuestionItem {
   rubricCriteria: string;
   chapterId: string;
   lessonId: string;
+  language?: 'ar' | 'en';
 }
 
 export interface Lesson {
   id: string;
   title: string;
+  titleEn?: string;
   chapterId: string;
   chapterTitle: string;
+  chapterTitleEn?: string;
   content: string;
+  contentEn?: string;
   keyConcepts: string[];
+  keyConceptsEn?: string[];
   codeExample?: string;
   isCustom?: boolean;
   createdAt: string;
@@ -37,7 +42,9 @@ export interface Lesson {
 export interface Chapter {
   id: string;
   title: string;
+  titleEn?: string;
   description: string;
+  descriptionEn?: string;
   order: number;
 }
 
@@ -46,13 +53,16 @@ export interface QuestionBatch {
   timestamp: string;
   chapterId: string;
   chapterTitle: string;
+  chapterTitleEn?: string;
   lessonId: string;
   lessonTitle: string;
+  lessonTitleEn?: string;
   questionType: QuestionType;
   thinkingLevel: ThinkingLevel;
   questions: QuestionItem[];
   generationSource: 'gemini-3.8-flash' | 'curriculum_bank';
   engineNotice: string;
+  language?: 'ar' | 'en';
 }
 
 export interface GenerationRequest {
@@ -63,6 +73,7 @@ export interface GenerationRequest {
   lessonContent?: string;
   questionType: QuestionType;
   thinkingLevel: ThinkingLevel;
+  language?: 'ar' | 'en';
 }
 
 export interface GenerationResponse {
@@ -71,4 +82,5 @@ export interface GenerationResponse {
   generationSource: 'gemini-3.8-flash' | 'curriculum_bank';
   engineNotice: string;
   error?: string;
+  language?: 'ar' | 'en';
 }

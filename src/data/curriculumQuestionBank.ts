@@ -350,14 +350,178 @@ export const CURRICULUM_QUESTION_BANK: QuestionBankEntry[] = [
   }
 ];
 
+export const CURRICULUM_QUESTION_BANK_EN: QuestionBankEntry[] = [
+  // --- Unit 1: Information Technology and Society ---
+  {
+    chapterId: 'ch-1',
+    lessonId: 'les-1-1',
+    type: 'mcq',
+    thinkingLevel: 'remembering',
+    question: 'Which sequence correctly describes the historical chronological evolution of Information Technology (IT) according to the Egyptian curriculum?',
+    options: [
+      'Early Computers (Vacuum Tubes) → Commercialization of Internet → Rise of Smartphones → Cloud Computing & AI',
+      'Early Computers → Rise of Smartphones → Commercialization of Internet → Cloud Computing',
+      'Commercialization of Internet → Early Computers → Cloud Computing → Rise of Smartphones',
+      'Rise of Smartphones → Commercialization of Internet → Early Computers → Cloud Computing'
+    ],
+    correctAnswer: 'Early Computers (Vacuum Tubes) → Commercialization of Internet → Rise of Smartphones → Cloud Computing & AI',
+    explanation: 'According to the official curriculum: Computers emerged in the 1940s-60s, commercial internet in the 1990s, smartphones in the 2000s, and cloud computing/AI expanded from 2010 onward.',
+    rubricCriteria: 'Full mark for accurately identifying the correct historical chronological progression.'
+  },
+  {
+    chapterId: 'ch-1',
+    lessonId: 'les-1-1',
+    type: 'short_answer',
+    thinkingLevel: 'applying',
+    question: 'In autonomous (self-driving) vehicles, why is it critical to process sensor telemetry data locally via "Edge Computing" rather than transmitting everything to remote cloud data centers?',
+    correctAnswer: 'Transmitting data to the cloud incurs network latency and depends on continuous connectivity. Any delay in driving environments can cause fatal accidents; hence Edge Computing performs real-time milliseconds processing on-board for immediate safety actions.',
+    explanation: 'Edge computing minimizes latency down to fractions of a millisecond and maintains uninterrupted local safety fail-safes without requiring cloud round-trips.',
+    rubricCriteria: '2 marks for analyzing network latency and round-trip delay + 2 marks for relating to critical real-time vehicle safety.'
+  },
+  {
+    chapterId: 'ch-1',
+    lessonId: 'les-1-1',
+    type: 'true_false',
+    thinkingLevel: 'remembering',
+    question: 'Moore’s Law is an unalterable natural physical law of nature guaranteeing that semiconductor processing speed doubles indefinitely without physical or thermal limitations.',
+    correctAnswer: 'False',
+    explanation: 'Moore’s Law is an empirical observation, not a physical law of nature. It currently encounters severe physical constraints such as thermal dissipation, current leakage, and quantum tunneling effects.',
+    rubricCriteria: '1 mark for identifying False + 1 mark for mentioning that it is an empirical observation facing physical and thermal limits.'
+  },
+  {
+    chapterId: 'ch-1',
+    lessonId: 'les-1-2',
+    type: 'mcq',
+    thinkingLevel: 'applying',
+    question: 'Which of the following correctly orders the technical hierarchy of Artificial Intelligence domains from broadest umbrella to most specialized subset?',
+    options: [
+      'Artificial Intelligence (AI) > Machine Learning (ML) > Deep Learning (DL) > Generative AI (GenAI)',
+      'Machine Learning (ML) > Artificial Intelligence (AI) > Deep Learning (DL) > Generative AI',
+      'Generative AI > Deep Learning > Machine Learning > Artificial Intelligence',
+      'Artificial Intelligence > Deep Learning > Machine Learning > Generative AI'
+    ],
+    correctAnswer: 'Artificial Intelligence (AI) > Machine Learning (ML) > Deep Learning (DL) > Generative AI (GenAI)',
+    explanation: 'AI is the umbrella term; ML is its major branch; DL uses multi-layer neural networks within ML; and GenAI builds upon deep learning models to generate original content.',
+    rubricCriteria: 'Full mark for selecting the correct taxonomic hierarchy.'
+  },
+  {
+    chapterId: 'ch-1',
+    lessonId: 'les-1-4',
+    type: 'short_answer',
+    thinkingLevel: 'evaluating',
+    question: 'Explain the concept of "Algorithmic Bias" in AI systems and discuss how engineers can mitigate it during model training.',
+    correctAnswer: 'Algorithmic bias occurs when an AI system produces systematically unfair outcomes due to historical prejudices, demographic underrepresentation, or skewed labeling in training data. Engineers mitigate it by auditing datasets for diversity, balancing sample distributions, and implementing fairness metrics and Explainable AI (XAI) audits.',
+    explanation: 'Addressing algorithmic bias requires auditing the training pipeline, testing across demographic cohorts, and enforcing ethical transparency.',
+    rubricCriteria: '2 marks for defining bias origins in training data + 2 marks for specifying concrete engineering mitigation techniques.'
+  },
+
+  // --- Unit 2: Cybersecurity & Cryptography ---
+  {
+    chapterId: 'ch-2',
+    lessonId: 'les-2-1',
+    type: 'mcq',
+    thinkingLevel: 'applying',
+    question: 'Why does the TLS/SSL protocol combine both Asymmetric and Symmetric cryptography during a secure web session rather than using asymmetric encryption exclusively for all data transfer?',
+    options: [
+      'Asymmetric encryption is used during the Handshake to authenticate and securely exchange session keys, while Symmetric encryption is used for data transmission due to its vastly superior computational speed',
+      'Symmetric encryption cannot be executed on web browsers',
+      'Asymmetric encryption does not provide confidentiality for user passwords',
+      'Symmetric encryption requires three different public keys for every client'
+    ],
+    correctAnswer: 'Asymmetric encryption is used during the Handshake to authenticate and securely exchange session keys, while Symmetric encryption is used for data transmission due to its vastly superior computational speed',
+    explanation: 'Asymmetric cryptography (RSA/ECC) solves key distribution securely, but is computationally intensive. Symmetric cryptography (AES) is thousands of times faster, making it optimal for bulk payload encryption.',
+    rubricCriteria: 'Full mark for analyzing the computational speed vs key exchange trade-off.'
+  },
+  {
+    chapterId: 'ch-2',
+    lessonId: 'les-2-1',
+    type: 'true_false',
+    thinkingLevel: 'evaluating',
+    question: 'A digital signature provides Non-Repudiation, meaning the sender cannot deny having created and sent the message, because it is signed using the sender’s private key.',
+    correctAnswer: 'True',
+    explanation: 'Because only the owner possesses their private key, a valid digital signature decrypted by the sender’s public key proves beyond doubt the authenticity, integrity, and origin of the document (Non-Repudiation).',
+    rubricCriteria: '1 mark for identifying True + 1 mark for citing private key uniqueness.'
+  },
+  {
+    chapterId: 'ch-2',
+    lessonId: 'les-2-2',
+    type: 'short_answer',
+    thinkingLevel: 'evaluating',
+    question: 'A company hosts a public e-commerce web portal and an internal database holding customer credit cards. Explain why placing both servers in the same subnet is dangerous, and describe how a Demilitarized Zone (DMZ) architecture resolves this risk.',
+    correctAnswer: 'Placing both servers in the same network means that if an attacker compromises the web server, they gain immediate lateral access to the sensitive database. A DMZ isolates the public-facing web server in a buffer zone; a second firewall blocks direct outside access to the internal network and only permits strictly controlled internal DB queries.',
+    explanation: 'A DMZ provides defense-in-depth by preventing attackers who breach public-facing web applications from pivoting into the internal network.',
+    rubricCriteria: '2 marks for lateral movement risk + 2 marks for explaining DMZ firewall perimeter separation.'
+  },
+
+  // --- Unit 3: Web Applications Architecture ---
+  {
+    chapterId: 'ch-3',
+    lessonId: 'les-3-1',
+    type: 'mcq',
+    thinkingLevel: 'remembering',
+    question: 'In modern client-server web applications, which lightweight data-interchange format is predominantly used by RESTful APIs for transmitting structured key-value data between browser and backend server?',
+    options: [
+      'JSON (JavaScript Object Notation)',
+      'Binary Machine Code',
+      'Plain Text CSV without schema',
+      'Direct SQL dump files'
+    ],
+    correctAnswer: 'JSON (JavaScript Object Notation)',
+    explanation: 'JSON is the universal, language-independent lightweight format for web APIs, parsed natively by JavaScript and backend frameworks.',
+    rubricCriteria: 'Full mark for selecting JSON.'
+  },
+  {
+    chapterId: 'ch-3',
+    lessonId: 'les-3-2',
+    type: 'short_answer',
+    thinkingLevel: 'applying',
+    question: 'Differentiate between an HTTP GET request and an HTTP POST request in web applications, in terms of parameter location, caching, and security for user credentials.',
+    correctAnswer: 'GET appends query parameters directly into the visible URL, is cached by browsers, and should never be used for sensitive credentials. POST sends parameters inside the encrypted request payload body, is not cached by default, and is the standard method for user authentication and state-modifying actions.',
+    explanation: 'GET is designed for safe, idempotent data retrieval; POST is designed for submitting payloads and mutating server state.',
+    rubricCriteria: '2 marks for URL parameters vs Request Body + 2 marks for caching and security implications.'
+  },
+
+  // --- Unit 4: Web Design and User Experience ---
+  {
+    chapterId: 'ch-4',
+    lessonId: 'les-4-1',
+    type: 'mcq',
+    thinkingLevel: 'applying',
+    question: 'What is the primary technical distinction between Vector graphics (e.g. SVG) and Raster graphics (e.g. JPEG, PNG) when designing responsive web interfaces across diverse screen resolutions?',
+    options: [
+      'Vector graphics use mathematical geometric paths and scale infinitely without loss of clarity, whereas Raster graphics consist of pixel grids that become blurry or pixelated when enlarged',
+      'Raster graphics can only display black and white colors',
+      'Vector graphics always result in significantly larger file sizes than any PNG',
+      'Vector graphics cannot be rendered by modern web browsers'
+    ],
+    correctAnswer: 'Vector graphics use mathematical geometric paths and scale infinitely without loss of clarity, whereas Raster graphics consist of pixel grids that become blurry or pixelated when enlarged',
+    explanation: 'SVG vector files define lines and curves mathematically, ensuring crisp sharpness on 4K/Retina displays as well as smartphones.',
+    rubricCriteria: 'Full mark for highlighting mathematical paths vs pixel grids and scalability.'
+  },
+  {
+    chapterId: 'ch-4',
+    lessonId: 'les-4-4',
+    type: 'short_answer',
+    thinkingLevel: 'evaluating',
+    question: 'In iterative web application optimization, explain how A/B Testing allows engineers to scientifically determine which user interface layout maximizes student exam completions.',
+    correctAnswer: 'A/B Testing routes incoming users randomly to two live variants (Variant A: baseline layout, Variant B: redesigned layout) concurrently. By measuring conversion metrics (completion rate, time-to-finish) under identical conditions, developers choose the winning design backed by quantitative behavioral data rather than subjective guessing.',
+    explanation: 'A/B Testing provides empirical, data-driven evidence to evaluate UI/UX modifications.',
+    rubricCriteria: '2 marks for explaining randomized concurrent split + 2 marks for objective metric-driven decision making.'
+  }
+];
+
 export function generateCurriculumQuestions(
   chapterId: string,
   lessonId: string,
   questionType: QuestionType,
   thinkingLevel: ThinkingLevel,
-  lessonTitle: string
+  lessonTitle: string,
+  language: 'ar' | 'en' = 'ar'
 ): QuestionItem[] {
-  let filtered = CURRICULUM_QUESTION_BANK.filter(q => {
+  const isEn = language === 'en';
+  const targetBank = isEn ? CURRICULUM_QUESTION_BANK_EN : CURRICULUM_QUESTION_BANK;
+
+  let filtered = targetBank.filter(q => {
     const matchLesson = lessonId === 'all' || q.lessonId === lessonId || q.chapterId === chapterId;
     const matchType = questionType === 'all' || q.type === questionType;
     const matchLevel = thinkingLevel === 'all' || q.thinkingLevel === thinkingLevel;
@@ -365,7 +529,7 @@ export function generateCurriculumQuestions(
   });
 
   if (filtered.length < 3) {
-    const backup = CURRICULUM_QUESTION_BANK.filter(q => {
+    const backup = targetBank.filter(q => {
       const matchChapter = q.chapterId === chapterId || chapterId === 'all';
       const matchType = questionType === 'all' || q.type === questionType;
       return matchChapter && matchType;
@@ -374,7 +538,7 @@ export function generateCurriculumQuestions(
   }
 
   if (filtered.length === 0) {
-    return generateCustomQuestionsForNewLesson(chapterId, lessonId, lessonTitle, questionType, thinkingLevel);
+    return generateCustomQuestionsForNewLesson(chapterId, lessonId, lessonTitle, questionType, thinkingLevel, language);
   }
 
   const shuffled = [...filtered].sort(() => Math.random() - 0.5);
@@ -393,6 +557,7 @@ export function generateCurriculumQuestions(
     rubricCriteria: q.rubricCriteria,
     chapterId: q.chapterId,
     lessonId: q.lessonId,
+    language,
   }));
 }
 
@@ -401,56 +566,108 @@ function generateCustomQuestionsForNewLesson(
   lessonId: string,
   lessonTitle: string,
   questionType: QuestionType,
-  thinkingLevel: ThinkingLevel
+  thinkingLevel: ThinkingLevel,
+  language: 'ar' | 'en' = 'ar'
 ): QuestionItem[] {
   const ts = Date.now();
   const level: 'remembering' | 'applying' | 'evaluating' = 
     thinkingLevel === 'all' ? 'applying' : thinkingLevel;
 
-  const questions: QuestionItem[] = [
-    {
-      id: `custom-${ts}-1`,
-      type: 'mcq',
-      thinkingLevel: level === 'remembering' ? 'remembering' : 'applying',
-      question: `في سياق درس «${lessonTitle}»، ما هو الإجراء الأمني أو المفهوم البرمجي الأنسب المعتمد في مواصفات الوزارة؟`,
-      options: [
-        `تحليل متطلبات الأمان والتطبيق النموذجي لقواعد المنهج في موضوع ${lessonTitle}`,
-        'تجاهل ضوابط الحوسبة الطرفية والتشفير والاعتماد على افتراض الأمان التلقائي',
-        'استخدام كلمات مرور ثابتة ومشتركة دون تفعيل أي وسيلة مصادقة إضافية',
-        'تعطيل جدار الحماية والمنطقة المعزولة لتسريع تدفق البيانات'
-      ],
-      correctAnswer: `تحليل متطلبات الأمان والتطبيق النموذجي لقواعد المنهج في موضوع ${lessonTitle}`,
-      explanation: `يركز موضوع «${lessonTitle}» في مقرر البكالوريا على الربط بين الفهم النظري والممارسة العملية الآمنة.`,
-      rubricCriteria: 'درجة كاملة لاختيار الإجراء الصحيح مع توضيح ارتباطه بدرس ' + lessonTitle,
-      chapterId,
-      lessonId,
-    },
-    {
-      id: `custom-${ts}-2`,
-      type: 'true_false',
-      thinkingLevel: 'applying',
-      question: `تطبيق المفاهيم الواردة في درس «${lessonTitle}» يقتصر فقط على الجانب النظري ولا يرتبط بأي حماية أمنية أو تقنيات شبكات وبرمجة في الواقع العملي.`,
-      correctAnswer: 'خطأ',
-      explanation: `العبارة خاطئة تماماً؛ فمنهج البرمجة والذكاء الاصطناعي للصف الثاني بالبكالوريا يربط المفاهيم النظرية مباشرة بحماية الشبكات والتطبيقات البرمجية الواقعية.`,
-      rubricCriteria: 'درجة لتحديد الخطأ + درجة لتقديم التعليل المناسب.',
-      chapterId,
-      lessonId,
-    },
-    {
-      id: `custom-${ts}-3`,
-      type: 'short_answer',
-      thinkingLevel: 'evaluating',
-      question: `سؤال امتحاني: اكتب تحليلاً موجزاً يوضح أهمية موضوع «${lessonTitle}» في تعزيز منظومة التكنولوجيا والأمن الرقمي في مصر، موضحاً تحدياً عملياً قد يواجه المهندس أو المطور أثناء التنفيذ.`,
-      correctAnswer: `تكمن أهمية درس «${lessonTitle}» في بناء بنية تحتية رقمية آمنة وموثوقة تواكب التحول الرقمي. ومن أبرز التحديات: الموازنة بين سهولة استخدام الخدمات من قِبل الجمهور وبين فرض أعلى معايير الأمان والتشفير.`,
-      explanation: `يستهدف المنهج تنمية التفكير النقدي وتطبيق المعايير الدولية للاستخدام الآمن والمسؤول لتكنولوجيا المعلومات.`,
-      rubricCriteria: 'درجتان للتحليل المنهجي + درجتان لبيان التحدي العملي وسبل معالجته.',
-      chapterId,
-      lessonId,
-    }
-  ];
+  const isEn = language === 'en';
+
+  const questions: QuestionItem[] = isEn
+    ? [
+        {
+          id: `custom-${ts}-1`,
+          type: 'mcq',
+          thinkingLevel: level === 'remembering' ? 'remembering' : 'applying',
+          question: `In the context of "${lessonTitle}", which technical implementation or security standard complies with official curriculum specifications?`,
+          options: [
+            `Analyze security requirements and apply standard architectural guidelines for ${lessonTitle}`,
+            'Bypass encryption and edge controls assuming networks are secure by default',
+            'Use hardcoded static credentials across all endpoints without authentication',
+            'Disable firewalls and network segmentation to accelerate data transfers'
+          ],
+          correctAnswer: `Analyze security requirements and apply standard architectural guidelines for ${lessonTitle}`,
+          explanation: `The Egyptian curriculum focuses on connecting theoretical comprehension of "${lessonTitle}" with secure, standard engineering practices.`,
+          rubricCriteria: `Full mark for identifying standard architectural guidelines aligned with ${lessonTitle}.`,
+          chapterId,
+          lessonId,
+          language: 'en',
+        },
+        {
+          id: `custom-${ts}-2`,
+          type: 'true_false',
+          thinkingLevel: 'applying',
+          question: `The concepts taught in "${lessonTitle}" are purely theoretical abstractions with no practical bearing on modern web applications, AI models, or cybersecurity perimeters.`,
+          correctAnswer: 'False',
+          explanation: `The statement is false; the Egyptian curriculum directly connects theoretical concepts to real-world software, AI systems, and defensive cybersecurity measures.`,
+          rubricCriteria: '1 mark for selecting False + 1 mark for justifying real-world practical integration.',
+          chapterId,
+          lessonId,
+          language: 'en',
+        },
+        {
+          id: `custom-${ts}-3`,
+          type: 'short_answer',
+          thinkingLevel: 'evaluating',
+          question: `Examination Task: Provide a brief technical analysis explaining the strategic importance of "${lessonTitle}" in national digital transformation, identifying one practical engineering challenge developers face during deployment.`,
+          correctAnswer: `"${lessonTitle}" is vital for engineering resilient, secure digital infrastructure. A key challenge is balancing high security and rigorous encryption with low-latency user experience and accessibility.`,
+          explanation: `The curriculum cultivates analytical thinking, problem-solving, and adherence to international engineering standards.`,
+          rubricCriteria: '2 marks for contextual strategic analysis + 2 marks for analyzing engineering challenges and mitigations.',
+          chapterId,
+          lessonId,
+          language: 'en',
+        }
+      ]
+    : [
+        {
+          id: `custom-${ts}-1`,
+          type: 'mcq',
+          thinkingLevel: level === 'remembering' ? 'remembering' : 'applying',
+          question: `في سياق درس «${lessonTitle}»، ما هو الإجراء الأمني أو المفهوم البرمجي الأنسب المعتمد في مواصفات الوزارة؟`,
+          options: [
+            `تحليل متطلبات الأمان والتطبيق النموذجي لقواعد المنهج في موضوع ${lessonTitle}`,
+            'تجاهل ضوابط الحوسبة الطرفية والتشفير والاعتماد على افتراض الأمان التلقائي',
+            'استخدام كلمات مرور ثابتة ومشتركة دون تفعيل أي وسيلة مصادقة إضافية',
+            'تعطيل جدار الحماية والمنطقة المعزولة لتسريع تدفق البيانات'
+          ],
+          correctAnswer: `تحليل متطلبات الأمان والتطبيق النموذجي لقواعد المنهج في موضوع ${lessonTitle}`,
+          explanation: `يركز موضوع «${lessonTitle}» في مقرر البكالوريا على الربط بين الفهم النظري والممارسة العملية الآمنة.`,
+          rubricCriteria: 'درجة كاملة لاختيار الإجراء الصحيح مع توضيح ارتباطه بدرس ' + lessonTitle,
+          chapterId,
+          lessonId,
+          language: 'ar',
+        },
+        {
+          id: `custom-${ts}-2`,
+          type: 'true_false',
+          thinkingLevel: 'applying',
+          question: `تطبيق المفاهيم الواردة في درس «${lessonTitle}» يقتصر فقط على الجانب النظري ولا يرتبط بأي حماية أمنية أو تقنيات شبكات وبرمجة في الواقع العملي.`,
+          correctAnswer: 'خطأ',
+          explanation: `العبارة خاطئة تماماً؛ فمنهج البرمجة والذكاء الاصطناعي للصف الثاني بالبكالوريا يربط المفاهيم النظرية مباشرة بحماية الشبكات والتطبيقات البرمجية الواقعية.`,
+          rubricCriteria: 'درجة لتحديد الخطأ + درجة لتقديم التعليل المناسب.',
+          chapterId,
+          lessonId,
+          language: 'ar',
+        },
+        {
+          id: `custom-${ts}-3`,
+          type: 'short_answer',
+          thinkingLevel: 'evaluating',
+          question: `سؤال امتحاني: اكتب تحليلاً موجزاً يوضح أهمية موضوع «${lessonTitle}» في تعزيز منظومة التكنولوجيا والأمن الرقمي في مصر، موضحاً تحدياً عملياً قد يواجه المهندس أو المطور أثناء التنفيذ.`,
+          correctAnswer: `تكمن أهمية درس «${lessonTitle}» في بناء بنية تحتية رقمية آمنة وموثوقة تواكب التحول الرقمي. ومن أبرز التحديات: الموازنة بين سهولة استخدام الخدمات من قِبل الجمهور وبين فرض أعلى معايير الأمان والتشفير.`,
+          explanation: `يستهدف المنهج تنمية التفكير النقدي وتطبيق المعايير الدولية للاستخدام الآمن والمسؤول لتكنولوجيا المعلومات.`,
+          rubricCriteria: 'درجتان للتحليل المنهجي + درجتان لبيان التحدي العملي وسبل معالجته.',
+          chapterId,
+          lessonId,
+          language: 'ar',
+        }
+      ];
 
   if (questionType === 'all') {
     return questions;
   }
   return questions.filter(q => q.type === questionType);
 }
+

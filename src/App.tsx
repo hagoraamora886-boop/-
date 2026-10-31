@@ -3,10 +3,11 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Chapter, Lesson, QuestionBatch, QuestionItem, QuestionType, ThinkingLevel } from './types.ts';
 import { storageService } from './services/storageService.ts';
 import { aiService } from './services/aiService.ts';
+import { useLanguage } from './context/LanguageContext.tsx';
 import { Navbar } from './components/Navbar.tsx';
 import { QuestionGenerator } from './components/QuestionGenerator.tsx';
 import { QuestionsDisplay } from './components/QuestionsDisplay.tsx';
@@ -14,9 +15,10 @@ import { LessonLibrary } from './components/LessonLibrary.tsx';
 import { LessonModal } from './components/LessonModal.tsx';
 import { SavedBatchesView } from './components/SavedBatchesView.tsx';
 import { CurriculumGuideView } from './components/CurriculumGuideView.tsx';
-import { Sparkles, BookOpen, Layers, Award, CheckCircle2 } from 'lucide-react';
+import { Sparkles, BookOpen } from 'lucide-react';
 
 export default function App() {
+  const { language, t, dir } = useLanguage();
   const [activeTab, setActiveTab] = useState<'generator' | 'library' | 'saved' | 'curriculum'>('generator');
   
   // Data state
@@ -53,6 +55,9 @@ export default function App() {
   const [editingLesson, setEditingLesson] = useState<Lesson | null>(null);
   const [libraryNotification, setLibraryNotification] = useState<string | null>(null);
 
+  // Track initial mount to avoid double generate
+  const isFirstMount = useRef(true);
+
   // Load initial data
   useEffect(() => {
     const loadedChapters = storageService.getChapters();
@@ -64,11 +69,15 @@ export default function App() {
     setSavedBatches(loadedSavedBatches);
 
     // Default select first chapter and lesson
+    let initialChId = 'all';
+    let initialLesId = 'all';
     if (loadedChapters.length > 0) {
-      setSelectedChapterId(loadedChapters[0].id);
+      initialChId = loadedChapters[0].id;
+      setSelectedChapterId(initialChId);
       const firstLessonInCh = loadedLessons.find(l => l.chapterId === loadedChapters[0].id);
       if (firstLessonInCh) {
-        setSelectedLessonId(firstLessonInCh.id);
+        initialLesId = firstLessonInCh.id;
+        setSelectedLessonId(initialLesId);
       }
     }
 
@@ -77,19 +86,27 @@ export default function App() {
       setBackendStatus(status);
     });
 
-    // Generate initial initial batch automatically on first load so the teacher sees instant content
+    // Generate initial batch automatically on first load so the teacher sees instant content
     if (loadedLessons.length > 0) {
       const initialLesson = loadedLessons[0];
       const initialChapter = loadedChapters[0];
+      const initialChTitle = language === 'en'
+        ? (initialChapter?.titleEn || initialChapter?.title || 'Unit 1: IT & Society')
+        : (initialChapter ? initialChapter.title : 'الفصل الأول');
+      const initialLesTitle = language === 'en'
+        ? (initialLesson.titleEn || initialLesson.title)
+        : initialLesson.title;
+
       setIsGenerating(true);
       aiService.generateQuestionsBatch({
         chapterId: initialLesson.chapterId,
-        chapterTitle: initialChapter ? initialChapter.title : 'الفصل الأول',
+        chapterTitle: initialChTitle,
         lessonId: initialLesson.id,
-        lessonTitle: initialLesson.title,
-        lessonContent: initialLesson.content,
+        lessonTitle: initialLesTitle,
+        lessonContent: language === 'en' && initialLesson.contentEn ? initialLesson.contentEn : initialLesson.content,
         questionType: 'all',
         thinkingLevel: 'all',
+        language,
       }).then(res => {
         setIsGenerating(false);
         if (res.success && res.questions.length > 0) {
@@ -97,33 +114,47 @@ export default function App() {
           setCurrentBatchMeta({
             source: res.generationSource,
             notice: res.engineNotice,
-            chapterTitle: initialChapter ? initialChapter.title : 'الفصل الأول',
-            lessonTitle: initialLesson.title,
+            chapterTitle: initialChTitle,
+            lessonTitle: initialLesTitle,
           });
         }
       });
     }
   }, []);
 
-  // Handler: Generate a new batch of questions (without specifying question count!)
+  // When language switches, re-generate active batch to match the newly selected language
+  useEffect(() => {
+    if (isFirstMount.current) {
+      isFirstMount.current = false;
+      return;
+    }
+    // Only auto-regenerate if we have loaded chapters and lessons
+    if (chapters.length > 0 && lessons.length > 0) {
+      handleGenerateBatch();
+    }
+  }, [language]);
+
+  // Handler: Generate a new batch of questions
   const handleGenerateBatch = async () => {
     setIsGenerating(true);
     setIsCurrentBatchSaved(false);
 
-    // Resolve chapter title and lesson title
-    let targetChapterTitle = 'كافة فصول المنهج';
+    // Resolve chapter title and lesson title according to active language
+    let targetChapterTitle = language === 'en' ? 'All Curriculum Units' : 'كافة فصول المنهج';
     if (selectedChapterId !== 'all') {
       const ch = chapters.find(c => c.id === selectedChapterId);
-      if (ch) targetChapterTitle = ch.title;
+      if (ch) {
+        targetChapterTitle = language === 'en' ? (ch.titleEn || ch.title) : ch.title;
+      }
     }
 
-    let targetLessonTitle = 'كافة موضوعات المقرر';
+    let targetLessonTitle = language === 'en' ? 'All Syllabus Topics' : 'كافة موضوعات المقرر';
     let targetLessonContent = '';
     if (selectedLessonId !== 'all') {
       const les = lessons.find(l => l.id === selectedLessonId);
       if (les) {
-        targetLessonTitle = les.title;
-        targetLessonContent = les.content;
+        targetLessonTitle = language === 'en' ? (les.titleEn || les.title) : les.title;
+        targetLessonContent = (language === 'en' && les.contentEn) ? les.contentEn : les.content;
       }
     }
 
@@ -136,6 +167,7 @@ export default function App() {
         lessonContent: targetLessonContent,
         questionType: selectedType,
         thinkingLevel: selectedLevel,
+        language,
       });
 
       if (response.success && response.questions.length > 0) {
@@ -169,12 +201,20 @@ export default function App() {
       const updated = storageService.updateLesson(editingLesson.id, lessonData);
       if (updated) {
         setLessons(storageService.getLessons());
-        setLibraryNotification(`تم تعديل الدرس «${lessonData.title}» وحفظه بنجاح.`);
+        setLibraryNotification(
+          language === 'en'
+            ? `Lesson "${lessonData.title}" was updated and saved successfully.`
+            : `تم تعديل الدرس «${lessonData.title}» وحفظه بنجاح.`
+        );
       }
     } else {
-      const created = storageService.addLesson(lessonData);
+      storageService.addLesson(lessonData);
       setLessons(storageService.getLessons());
-      setLibraryNotification(`تم إضافة الدرس الجديد «${lessonData.title}» وحفظه في المكتبة.`);
+      setLibraryNotification(
+        language === 'en'
+          ? `New lesson "${lessonData.title}" added to the library.`
+          : `تم إضافة الدرس الجديد «${lessonData.title}» وحفظه في المكتبة.`
+      );
     }
 
     setTimeout(() => {
@@ -187,7 +227,11 @@ export default function App() {
     const success = storageService.deleteLesson(id);
     if (success) {
       setLessons(storageService.getLessons());
-      setLibraryNotification('تم حذف الدرس بنجاح من المكتبة.');
+      setLibraryNotification(
+        language === 'en'
+          ? 'Lesson successfully deleted from library.'
+          : 'تم حذف الدرس بنجاح من المكتبة.'
+      );
       setTimeout(() => setLibraryNotification(null), 3000);
     }
   };
@@ -197,7 +241,11 @@ export default function App() {
     const defaults = storageService.resetLessonsToDefault();
     setLessons(defaults);
     setChapters(storageService.getChapters());
-    setLibraryNotification('تمت استعادة دروس المنهج الرسمية الافتراضية.');
+    setLibraryNotification(
+      language === 'en'
+        ? 'Restored official Ministry of Education curriculum lessons.'
+        : 'تمت استعادة دروس المنهج الرسمية الافتراضية.'
+    );
     setTimeout(() => setLibraryNotification(null), 3000);
   };
 
@@ -225,6 +273,7 @@ export default function App() {
       questions: currentQuestions,
       generationSource: currentBatchMeta.source,
       engineNotice: currentBatchMeta.notice,
+      language,
     };
 
     storageService.saveBatch(newBatch);
@@ -284,10 +333,14 @@ export default function App() {
           setLessons(storageService.getLessons());
           setChapters(storageService.getChapters());
           setSavedBatches(storageService.getSavedBatches());
-          setLibraryNotification(`تم استيراد ${res.count || 0} درساً بنجاح إلى المكتبة.`);
+          setLibraryNotification(
+            language === 'en'
+              ? `Successfully imported ${res.count || 0} lessons to the library.`
+              : `تم استيراد ${res.count || 0} درساً بنجاح إلى المكتبة.`
+          );
           setTimeout(() => setLibraryNotification(null), 4000);
         } else {
-          alert(res.error || 'فشل استيراد الملف');
+          alert(res.error || (language === 'en' ? 'Failed to import file' : 'فشل استيراد الملف'));
         }
       }
     };
@@ -296,7 +349,7 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col font-sans selection:bg-sky-500 selection:text-white print:bg-white print:min-h-0" dir="rtl">
+    <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col font-sans selection:bg-sky-500 selection:text-white print:bg-white print:min-h-0" dir={dir}>
       {/* 1. Header with Top Bar Contract */}
       <Navbar
         activeTab={activeTab}
@@ -322,17 +375,17 @@ export default function App() {
                   <div className="flex flex-wrap items-center gap-2">
                     <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-gradient-to-r from-indigo-500/20 to-sky-500/20 border border-indigo-400/30 text-xs font-semibold text-sky-300">
                       <Sparkles className="w-3.5 h-3.5 text-sky-300" />
-                      <span>منصة التفوق — الصف الثاني الثانوي بالبكالوريا المصرية</span>
+                      <span>{t('heroBadge')}</span>
                     </div>
                     <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-gradient-to-r from-purple-500/25 to-pink-500/20 border border-purple-400/40 text-xs font-bold text-purple-200 shadow-sm">
-                      <span>✨ إعداد سفيرة البرمجة أ/ هاجر محمود</span>
+                      <span>{t('teacherAttribution')}</span>
                     </div>
                   </div>
                   <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white leading-tight">
-                    منصة البرمجة والذكاء الاصطناعي التفاعلية
+                    {t('heroTitle')}
                   </h1>
                   <p className="text-xs sm:text-sm text-slate-300 leading-relaxed font-normal">
-                    منظومة تفاعلية تجمع بين معايير وزارة التربية والتعليم المصرية ونماذج الذكاء الاصطناعي للتدريب العملي، حل المشكلات والسيناريوهات التقنية، وتصدير نماذج الاختبارات والتقييم المعتمدة.
+                    {t('heroSubtitle')}
                   </p>
                 </div>
 
@@ -340,15 +393,15 @@ export default function App() {
                 <div className="grid grid-cols-3 gap-2.5 self-stretch lg:self-auto sm:min-w-[300px]">
                   <div className="p-3 rounded-xl bg-white/5 border border-white/10 backdrop-blur-sm text-center">
                     <div className="text-indigo-400 font-extrabold text-base font-mono">12+</div>
-                    <div className="text-[11px] text-slate-300 font-medium mt-0.5">دروس المنهج</div>
+                    <div className="text-[11px] text-slate-300 font-medium mt-0.5">{t('statLessons')}</div>
                   </div>
                   <div className="p-3 rounded-xl bg-white/5 border border-white/10 backdrop-blur-sm text-center">
                     <div className="text-sky-400 font-extrabold text-base font-mono">100%</div>
-                    <div className="text-[11px] text-slate-300 font-medium mt-0.5">مواصفات الوزارة</div>
+                    <div className="text-[11px] text-slate-300 font-medium mt-0.5">{t('statMinistry')}</div>
                   </div>
                   <div className="p-3 rounded-xl bg-white/5 border border-white/10 backdrop-blur-sm text-center">
                     <div className="text-emerald-400 font-extrabold text-base font-mono">AI</div>
-                    <div className="text-[11px] text-slate-300 font-medium mt-0.5">تدريب تفاعلي</div>
+                    <div className="text-[11px] text-slate-300 font-medium mt-0.5">{t('statInteractive')}</div>
                   </div>
                 </div>
               </div>
@@ -377,17 +430,21 @@ export default function App() {
                 questions={currentQuestions}
                 generationSource={currentBatchMeta?.source}
                 engineNotice={currentBatchMeta?.notice}
-                chapterTitle={currentBatchMeta?.chapterTitle || 'الفصل المحدد'}
-                lessonTitle={currentBatchMeta?.lessonTitle || 'الدرس المستهدف'}
+                chapterTitle={currentBatchMeta?.chapterTitle || (language === 'en' ? 'Selected Unit' : 'الفصل المحدد')}
+                lessonTitle={currentBatchMeta?.lessonTitle || (language === 'en' ? 'Target Topic' : 'الدرس المستهدف')}
                 onSaveToSavedBatches={handleSaveCurrentBatch}
                 isSaved={isCurrentBatchSaved}
               />
             ) : (
               <div className="bg-white border border-slate-200 rounded-xl p-10 text-center text-slate-500">
                 <BookOpen className="w-10 h-10 text-slate-300 mx-auto mb-2" />
-                <p className="font-semibold text-slate-700">اضغط على زر «إنشاء دفعة جديدة من الأسئلة» أعلاه</p>
+                <p className="font-semibold text-slate-700">
+                  {language === 'en' ? 'Click "Generate New Question Batch" above' : 'اضغط على زر «إنشاء دفعة جديدة من الأسئلة» أعلاه'}
+                </p>
                 <p className="text-xs text-slate-400 mt-1">
-                  سيتم توليد باقة متكاملة من الأسئلة ونموذج الإجابة والتفسيرات الأكاديمية فوراً
+                  {language === 'en'
+                    ? 'A comprehensive batch of questions with model answers and rubrics will be generated immediately'
+                    : 'سيتم توليد باقة متكاملة من الأسئلة ونموذج الإجابة والتفسيرات الأكاديمية فوراً'}
                 </p>
               </div>
             )}
@@ -433,15 +490,15 @@ export default function App() {
       <footer className="mt-auto border-t border-slate-200 bg-white py-6 text-center text-xs text-slate-500 print:hidden">
         <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-3">
           <div className="flex items-center gap-2">
-            <span className="font-semibold text-slate-800">مساعد البرمجة والذكاء الاصطناعي</span>
+            <span className="font-semibold text-slate-800">{t('appTitle')}</span>
             <span aria-hidden="true">·</span>
-            <span>الصف الثاني بالبكالوريا المصرية</span>
+            <span>{t('appSubtitle')}</span>
           </div>
 
           <div className="flex items-center gap-4 text-slate-400">
-            <span>منهج معتمد لوزارة التربية والتعليم والتعليم الفني</span>
+            <span>{language === 'en' ? 'Accredited Curriculum — Ministry of Education' : 'منهج معتمد لوزارة التربية والتعليم والتعليم الفني'}</span>
             <span aria-hidden="true">·</span>
-            <span>تكنولوجيا المعلومات وتطبيقات الويب والذكاء الاصطناعي</span>
+            <span>{language === 'en' ? 'IT, Web Applications & Artificial Intelligence' : 'تكنولوجيا المعلومات وتطبيقات الويب والذكاء الاصطناعي'}</span>
           </div>
         </div>
       </footer>

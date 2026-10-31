@@ -9,25 +9,33 @@ export const DEFAULT_CHAPTERS: Chapter[] = [
   {
     id: 'ch-1',
     title: 'الفصل 1: تكنولوجيا المعلومات والمجتمع',
+    titleEn: 'Unit 1: Information Technology and Society',
     description: 'تطور تكنولوجيا المعلومات، كيف يعمل الذكاء الاصطناعي، تطبيقاته في الحياة والصناعة، والقضايا الأخلاقية.',
+    descriptionEn: 'Evolution of IT, AI fundamentals, industry applications, and digital ethics.',
     order: 1,
   },
   {
     id: 'ch-2',
     title: 'الفصل 2: الأمن السيبراني',
+    titleEn: 'Unit 2: Cybersecurity & Defense',
     description: 'تقنيات التشفير والمصادقة، تصميم أمن الشبكات، والاستجابة للحوادث وإدارة المخاطر.',
+    descriptionEn: 'Encryption, authentication protocols, secure network perimeters, and incident response.',
     order: 2,
   },
   {
     id: 'ch-3',
     title: 'الفصل 3: تطبيقات الويب',
+    titleEn: 'Unit 3: Web Applications Architecture',
     description: 'البنية العامة لتطبيقات الويب، طرق الاتصال، وأساسيات تكنولوجيا الواجهة الأمامية.',
+    descriptionEn: 'Client-server model, web protocols, RESTful APIs, and frontend engineering.',
     order: 3,
   },
   {
     id: 'ch-4',
     title: 'الفصل 4: تصميم الويب والوسائط',
+    titleEn: 'Unit 4: Web Design and User Experience',
     description: 'أنواع الوسائط وخصائصها، تصميم المعلومات وتجربة المستخدم، أساليب التقييم، وعملية التحسين التكراري.',
+    descriptionEn: 'Digital media types, information architecture, UI/UX evaluation, and iterative optimization.',
     order: 4,
   },
 ];
@@ -38,7 +46,9 @@ export const DEFAULT_LESSONS: Lesson[] = [
     id: 'les-1-1',
     chapterId: 'ch-1',
     chapterTitle: 'الفصل 1: تكنولوجيا المعلومات والمجتمع',
+    chapterTitleEn: 'Unit 1: Information Technology and Society',
     title: 'الدرس 1-1: تطور تكنولوجيا المعلومات والتحول الاجتماعي',
+    titleEn: 'Lesson 1-1: Evolution of IT and Social Transformation',
     content: `مرت تكنولوجيا المعلومات (IT) بسلسلة من المراحل المتتابعة غيّرت حياة المجتمع:
 1. الأربعينيات - الستينيات: ظهور الحواسيب الإلكترونية الأولى (مثل ENIAC) باستخدام الصمامات المفرغة، واستُخدمت أساساً للأغراض العسكرية والحسابات العلمية.
 2. السبعينيات - الثمانينيات: انتشار الحواسيب الشخصية (PCs) وبداية استخدام الأفراد للحاسب.
@@ -78,7 +88,9 @@ Result: "توقف آمن للمركبة مع ضمان معايير السلام�
     id: 'les-1-2',
     chapterId: 'ch-1',
     chapterTitle: 'الفصل 1: تكنولوجيا المعلومات والمجتمع',
+    chapterTitleEn: 'Unit 1: Information Technology and Society',
     title: 'الدرس 1-2: كيف يعمل الذكاء الاصطناعي',
+    titleEn: 'Lesson 1-2: How Artificial Intelligence Works',
     content: `الذكاء الاصطناعي (AI) مظلة واسعة تضم مفاهيم وأنظمة متداخلة:
 1. الذكاء الاصطناعي (AI): مجال يضم أنظمة حاسوبية قادرة على أداء مهام تتطلب ذكاءً كالتفكير والتعلم من البيانات والتعرف على الأنماط والتنبؤ وتوليد المحتوى واتخاذ القرارات أو دعمها.
 2. التعلم الآلي (Machine Learning - ML): فرع رئيسي من الذكاء الاصطناعي تتعلم فيه النماذج الأنماط من البيانات لإجراء تنبؤات أو تصنيفات أو قرارات، بدلاً من برمجة كل قاعدة بشكل صريح ومباشر (القواعد المبرمجة صراحة مقابل الأنماط المتعلمة من البيانات).
@@ -105,7 +117,9 @@ Result: "توقف آمن للمركبة مع ضمان معايير السلام�
     id: 'les-1-3',
     chapterId: 'ch-1',
     chapterTitle: 'الفصل 1: تكنولوجيا المعلومات والمجتمع',
+    chapterTitleEn: 'Unit 1: Information Technology and Society',
     title: 'الدرس 1-3: الذكاء الاصطناعي في الحياة اليومية والصناعة',
+    titleEn: 'Lesson 1-3: AI in Daily Life and Industry Applications',
     content: `يؤثر الذكاء الاصطناعي في قطاعات متعددة:
 • في الحياة اليومية:
 1. أنظمة التوصية: التنبؤ بتفضيلات المستخدم من سلوكه السابق وعرض مقترحات مخصصة (يوتيوب، أمازون، سبوتيفاي).
@@ -143,7 +157,9 @@ Result: "توقف آمن للمركبة مع ضمان معايير السلام�
     id: 'les-1-4',
     chapterId: 'ch-1',
     chapterTitle: 'الفصل 1: تكنولوجيا المعلومات والمجتمع',
+    chapterTitleEn: 'Unit 1: Information Technology and Society',
     title: 'الدرس 1-4: القضايا الأخلاقية للذكاء الاصطناعي',
+    titleEn: 'Lesson 1-4: Ethical Issues of AI and Digital Citizenship',
     content: `مع تنامي استخدام أنظمة الذكاء الاصطناعي، برزت قضايا أخلاقية ملحة:
 • التحيز الخوارزمي (Algorithmic Bias): انحراف في مخرجات النظام يؤدي إلى نتائج غير عادلة أو تمييزية ضد فئة معينة. أسبابه:
 1. بيانات تدريب متحيزة أو غير كافية أو انعكاس ممارسات تمييزية سابقة مسجلة في البيانات التاريخية.
@@ -168,12 +184,10 @@ Result: "توقف آمن للمركبة مع ضمان معايير السلام�
       'حماية الخصوصية (Privacy)',
       'المساءلة (Accountability)',
     ],
-    codeExample: `# فحص التوزيع العادل لبيانات التدريب لمنع التحيز (Fairness Check)
-def audit_dataset_balance(labels):
-    counts = {category: labels.count(category) for category in set(labels)}
-    ratio = min(counts.values()) / max(counts.values())
-    is_biased = ratio < 0.5  # تحذير إذا كان تمثيل إحدى الفئات أقل من النصف
-    return {"distribution": counts, "requires_balancing": is_biased}`,
+    codeExample: `// تدقيق التوزيع المتوازن للبيانات لمنع التحيز (Dataset Bias Audit)
+const sampleCounts = { "Category_A": 1200, "Category_B": 1150 };
+const biasRatio = Math.min(...Object.values(sampleCounts)) / Math.max(...Object.values(sampleCounts));
+const isBalanced = biasRatio >= 0.8; // التحقق من التكافؤ العددي لضمان العدالة`,
     createdAt: '2026-09-15T08:00:00.000Z',
     updatedAt: '2026-09-15T08:00:00.000Z',
   },
@@ -183,7 +197,9 @@ def audit_dataset_balance(labels):
     id: 'les-2-1',
     chapterId: 'ch-2',
     chapterTitle: 'الفصل 2: الأمن السيبراني',
+    chapterTitleEn: 'Unit 2: Cybersecurity & Defense',
     title: 'الدرس 2-1: تقنيات التشفير والمصادقة',
+    titleEn: 'Lesson 2-1: Encryption and Authentication Technologies',
     content: `يعتمد أمان الاتصال والخدمات الرقمية على الجمع المتكامل بين تقنيات التشفير والمصادقة:
 • بروتوكول HTTPS واتصال TLS:
 بروتوكول HTTP المنقول عبر اتصال TLS مؤمّن لحماية سرية البيانات وسلامتها أثناء النقل.
@@ -226,7 +242,9 @@ def audit_dataset_balance(labels):
     id: 'les-2-2',
     chapterId: 'ch-2',
     chapterTitle: 'الفصل 2: الأمن السيبراني',
+    chapterTitleEn: 'Unit 2: Cybersecurity & Defense',
     title: 'الدرس 2-2: تصميم أمن الشبكات',
+    titleEn: 'Lesson 2-2: Network Security Design and Firewalls',
     content: `لا يكفي الاعتماد على إجراء أمني واحد لحماية شبكة المؤسسة:
 • عناصر حماية الشبكات الأساسية:
 1. جدار الحماية (Firewall): نظام أمني يراقب حركة مرور البيانات الصادرة والواردة ويسمح بها أو يمنعها استناداً إلى قواعد محددة مسبقاً (مثل السماح بالاتصال بخادم الويب ومنع الوصول المباشر لقواعد البيانات).
@@ -264,7 +282,9 @@ DEFAULT: [Deny All Unauthorized Connections]`,
     id: 'les-2-3',
     chapterId: 'ch-2',
     chapterTitle: 'الفصل 2: الأمن السيبراني',
+    chapterTitleEn: 'Unit 2: Cybersecurity & Defense',
     title: 'الدرس 2-3: الاستجابة للحوادث وإدارة المخاطر',
+    titleEn: 'Lesson 2-3: Incident Response and Risk Management',
     content: `مهما بلغت قوة الدفاعات، قد تتعرض المؤسسة لحادث أمني (تسرب بيانات شخصية، تلاعب بالملفات، أو انقطاع الخدمة بسبب برمجيات الفدية Ransomware أو هجمات الحرمان من الخدمة).
 • المراحل الست المنظمة للاستجابة للحوادث الأمنية:
 1. التحضير (Preparation): إعداد السياسات وفرق الاستجابة وخطط الطوارئ وتدريب الكوادر مسبقاً قبل وقوع أي حادث.
@@ -306,7 +326,9 @@ DEFAULT: [Deny All Unauthorized Connections]`,
     id: 'les-3-1',
     chapterId: 'ch-3',
     chapterTitle: 'الفصل 3: تطبيقات الويب',
+    chapterTitleEn: 'Unit 3: Web Applications Architecture',
     title: 'الدرس 3-1: البنية العامة لتطبيقات الويب',
+    titleEn: 'Lesson 3-1: Web Application Architecture (Client-Server)',
     content: `تعتمد شبكة الويب وتطبيقاتها المعاصرة على نموذج العميل والخادم (Client-Server Architecture):
 1. جانب العميل (Client-Side / Frontend): المتصفح أو تطبيق الهاتف الذي يتفاعل معه المستخدم مباشرة، ويقوم بعرض واجهة المستخدم، تنسيق العناصر، وتشغيل نصوص الجافاسكريبت التفاعلية.
 2. جانب الخادم (Server-Side / Backend): حواسيب مركزية متصلة بالإنترنت تستقبل طلبات العملاء، تنفذ منطق الأعمال البرمجي، تتحقق من المصادقة، وتتواصل مع قواعد البيانات.
@@ -321,7 +343,9 @@ DEFAULT: [Deny All Unauthorized Connections]`,
     id: 'les-3-2',
     chapterId: 'ch-3',
     chapterTitle: 'الفصل 3: تطبيقات الويب',
+    chapterTitleEn: 'Unit 3: Web Applications Architecture',
     title: 'الدرس 3-2: طرق الاتصال في تطبيقات الويب',
+    titleEn: 'Lesson 3-2: Web Communication Methods & RESTful APIs',
     content: `ينظم بروتوكول نقل النص الفائق (HTTP/HTTPS) عملية تبادل الرسائل والبيانات عبر الويب:
 • طرق الطلب الشائعة (HTTP Request Methods):
 1. GET: لطلب واسترجاع الموارد والصفحات من الخادم دون تعديل البيانات.
@@ -355,7 +379,9 @@ async function fetchQuestions(lessonId) {
     id: 'les-3-3',
     chapterId: 'ch-3',
     chapterTitle: 'الفصل 3: تطبيقات الويب',
+    chapterTitleEn: 'Unit 3: Web Applications Architecture',
     title: 'الدرس 3-3: أساسيات تكنولوجيا الواجهة الأمامية',
+    titleEn: 'Lesson 3-3: Frontend Technology Fundamentals (HTML, CSS, JS)',
     content: `تتكون الواجهة الأمامية للويب من ثلاث ركائز تقنية متكاملة:
 1. لغة HTML (HyperText Markup Language): مسؤولة عن بناء الهيكل العظمي للموقع والعناصر الدلالية (العناوين، الفقرات، الجداول، النماذج، الروابط، والأزرار).
 2. لغة CSS (Cascading Style Sheets): مسؤولة عن التصميم البصري والجمالي وتحديد الألوان، المسافات، الخطوط، وتخطيط الصفحة المتجاوب (Responsive Web Design) ليعمل الموقع بكفاءة على شاشات الهواتف والحواسيب.
@@ -370,7 +396,9 @@ async function fetchQuestions(lessonId) {
     id: 'les-4-1',
     chapterId: 'ch-4',
     chapterTitle: 'الفصل 4: تصميم الويب والوسائط',
+    chapterTitleEn: 'Unit 4: Web Design and User Experience',
     title: 'الدرس 4-1: أنواع الوسائط وخصائصها',
+    titleEn: 'Lesson 4-1: Digital Media Types and Characteristics',
     content: `تتنوع الوسائط الرقمية المستخدمة في بناء مواقع وتطبيقات الويب التعليمية والتفاعلية:
 1. النصوص والخطوط الرقمية (Typography): اختيار الخطوط الواضحة ودعم المقروئية والتسلسل الهرمي للعناوين.
 2. الصور النقطية (Raster Images مثل JPEG و PNG و WebP) التي تتكون من بكسلات وتستخدم للصور الفوتوغرافية، مقابل الصور المتجهة (Vector Images مثل SVG) القابلة للتكبير اللانهائي دون فقدان الدقة والمثالية للأيقونات والرسوم التخطيطية.
@@ -385,7 +413,9 @@ async function fetchQuestions(lessonId) {
     id: 'les-4-2',
     chapterId: 'ch-4',
     chapterTitle: 'الفصل 4: تصميم الويب والوسائط',
+    chapterTitleEn: 'Unit 4: Web Design and User Experience',
     title: 'الدرس 4-2: تصميم المعلومات وتجربة المستخدم للمواقع',
+    titleEn: 'Lesson 4-2: Information Architecture & UX Design',
     content: `تصميم المواقع الناجحة يتطلب الموازنة بين تصميم الواجهة وتجربة الاستخدام:
 • تجربة المستخدم (User Experience - UX): مدى سهولة وسلاسة وسرعة تحقيق المستخدم لأهدافه داخل الموقع دون تعقيد أو تشتت.
 • واجهة المستخدم (User Interface - UI): العناصر البصرية التي يراها المستخدم كالألوان، الأزرار، القوائم، والتخطيط المكاني.
@@ -399,11 +429,13 @@ async function fetchQuestions(lessonId) {
     id: 'les-4-3',
     chapterId: 'ch-4',
     chapterTitle: 'الفصل 4: تصميم الويب والوسائط',
+    chapterTitleEn: 'Unit 4: Web Design and User Experience',
     title: 'الدرس 4-3: أساليب تقييم المواقع الإلكترونية',
+    titleEn: 'Lesson 4-3: Evaluation Methods and Usability Metrics',
     content: `تقييم جودة الموقع الإلكتروني يتطلب معايير علمية محددة:
 1. تقييم الأداء والسرعة (Performance Metrics): قياس زمن تحميل الصفحة، استجابة الخادم، وحجم الملفات المضغوطة.
 2. التوافقية (Cross-Browser & Device Compatibility): التأكد من ظهور الموقع وعمله بشكل سليم عبر مختلف المتصفحات (كروم، إيدج، سفاري) والأجهزة (شاشات الكمبيوتر، الحواسيب اللوحية، الهواتف الذكية).
-3. تقييم سهولة الاستخدام والتنقل (Navigation & Usability Testing): اختبار مدى وضوح القوائم وخلو الموقع من الروابط المعطلة (Broken Links) وسهولة البحث الداخلي.
+3. تقييم سهولة الاستخدام والتنقل (Navigation & Usability Testing): اختبار مدى ووضوح القوائم وخلو الموقع من الروابط المعطلة (Broken Links) وسهولة البحث الداخلي.
 4. تقييم أمان الموقع ومصداقيته: وجود شهادة SSL/TLS سارية وتفعيل HTTPS لحماية بيانات النماذج.`,
     keyConcepts: ['Performance Testing', 'Page Load Time', 'Cross-Browser Testing', 'Navigation Evaluation', 'Security Audit'],
     createdAt: '2026-10-22T08:00:00.000Z',
@@ -413,7 +445,9 @@ async function fetchQuestions(lessonId) {
     id: 'les-4-4',
     chapterId: 'ch-4',
     chapterTitle: 'الفصل 4: تصميم الويب والوسائط',
+    chapterTitleEn: 'Unit 4: Web Design and User Experience',
     title: 'الدرس 4-4: عملية التحسين التكراري للمواقع',
+    titleEn: 'Lesson 4-4: Iterative Improvement Process & A/B Testing',
     content: `تطوير المواقع عملية ديناميكية مستمرة لا تنتهي بمجرد إطلاق الموقع:
 • دورة التحسين التكراري (Iterative Improvement Process):
 تعتمد على دورة من: التصميم -> الاختبار -> جمع التغذية الراجعة -> التحليل -> إدخال التحسينات ثم إعادة الاختبار.

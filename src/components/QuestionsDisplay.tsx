@@ -12,7 +12,6 @@ import {
   EyeOff,
   Check,
   FileCheck,
-  Code2,
   HelpCircle,
   Award,
   Sparkles,
@@ -26,8 +25,8 @@ import {
   Edit3,
   XCircle,
   CheckCheck,
-  FileQuestion,
 } from 'lucide-react';
+import { useLanguage } from '../context/LanguageContext.tsx';
 
 interface VerificationResult {
   isCorrect: boolean;
@@ -38,17 +37,22 @@ interface VerificationResult {
 const verifyStudentText = (
   userText: string,
   correctAnswer: string,
-  options?: string[]
+  options?: string[],
+  language: 'ar' | 'en' = 'ar'
 ): VerificationResult => {
+  const isEn = language === 'en';
+
   if (!userText || !userText.trim()) {
     return {
       isCorrect: false,
       matchScore: 0,
-      feedback: 'يرجى كتابة إجابتك أو مسودتك أولاً للتحقق منها.',
+      feedback: isEn
+        ? 'Please write your answer or notes in the scratchpad first.'
+        : 'يرجى كتابة إجابتك أو مسودتك أولاً للتحقق منها.',
     };
   }
 
-  const normalize = (str: string) =>
+  const normalizeAr = (str: string) =>
     str
       .trim()
       .toLowerCase()
@@ -59,23 +63,52 @@ const verifyStudentText = (
       .replace(/[.,/#!$%^&*;:{}=\-_`~()?"'«»]/g, ' ')
       .replace(/\s+/g, ' ');
 
-  const normUser = normalize(userText);
-  const normCorrect = normalize(correctAnswer);
+  const normalizeEn = (str: string) =>
+    str
+      .trim()
+      .toLowerCase()
+      .replace(/['"`]/g, '')
+      .replace(/[.,/#!$%^&*;:{}=\-_~()?"«»]/g, ' ')
+      .replace(/\s+/g, ' ');
 
-  // 1. Check if user wrote option letter (أ, ب, ج, د)
+  const normUser = isEn ? normalizeEn(userText) : normalizeAr(userText);
+  const normCorrect = isEn ? normalizeEn(correctAnswer) : normalizeAr(correctAnswer);
+
+  // 1. Check if user wrote option letter (A, B, C, D in English / أ, ب, ج, د in Arabic)
   if (options && options.length > 0) {
-    const letters = ['أ', 'ب', 'ج', 'د'];
+    const letters = isEn ? ['a', 'b', 'c', 'd'] : ['أ', 'ب', 'ج', 'د'];
     const correctIdx = options.findIndex((opt) => opt === correctAnswer);
     if (correctIdx !== -1) {
       const correctLetter = letters[correctIdx];
-      const userLetter = normUser.replace(/^(الخيار|خيار|اجابة|حرف)\s*/, '').trim();
+      const userLetter = isEn
+        ? normUser.replace(/^(option|choice|letter|answer)\s*/i, '').trim().toLowerCase()
+        : normUser.replace(/^(الخيار|خيار|اجابة|حرف)\s*/, '').trim();
+
       if (userLetter === correctLetter || normUser === correctLetter) {
         return {
           isCorrect: true,
           matchScore: 100,
-          feedback: `إجابة صحيحة ومطابقة تماماً! اختيارك (${correctLetter}): «${correctAnswer}».`,
+          feedback: isEn
+            ? `Correct choice (${correctLetter.toUpperCase()}): "${correctAnswer}".`
+            : `إجابة صحيحة ومطابقة تماماً! اختيارك (${correctLetter}): «${correctAnswer}».`,
         };
       }
+    }
+  }
+
+  // 1.5 True / False shortcut check
+  if (isEn) {
+    const isUserTrue = ['true', 't', 'correct', 'right'].includes(normUser);
+    const isUserFalse = ['false', 'f', 'incorrect', 'wrong'].includes(normUser);
+    const isCorrectTrue = normCorrect === 'true';
+    const isCorrectFalse = normCorrect === 'false';
+
+    if ((isUserTrue && isCorrectTrue) || (isUserFalse && isCorrectFalse)) {
+      return {
+        isCorrect: true,
+        matchScore: 100,
+        feedback: `Correct! Your judgment matches the official curriculum criteria (${correctAnswer}).`,
+      };
     }
   }
 
@@ -84,7 +117,9 @@ const verifyStudentText = (
     return {
       isCorrect: true,
       matchScore: 100,
-      feedback: 'إجابة صحيحة ومطابقة تماماً لنموذج الحل المعتمد! أحسنت صنعاً.',
+      feedback: isEn
+        ? 'Correct! Your drafted answer perfectly matches the official curriculum answer criteria. Excellent work!'
+        : 'إجابة صحيحة ومطابقة تماماً لنموذج الحل المعتمد! أحسنت صنعاً.',
     };
   }
 
@@ -93,7 +128,9 @@ const verifyStudentText = (
     return {
       isCorrect: true,
       matchScore: 95,
-      feedback: 'إجابة صحيحة! تتضمن المسودة الإجابة النموذجية المعتمدة وتغطي المطلوب بدقة.',
+      feedback: isEn
+        ? 'Correct! The draft contains the official model answer and covers the required task.'
+        : 'إجابة صحيحة! تتضمن المسودة الإجابة النموذجية المعتمدة وتغطي المطلوب بدقة.',
     };
   }
 
@@ -101,15 +138,23 @@ const verifyStudentText = (
     return {
       isCorrect: true,
       matchScore: 85,
-      feedback: 'إجابة صحيحة ومتقاربة جداً مع الحل المعتمد في المنهج.',
+      feedback: isEn
+        ? 'Correct and very close to the official model solution.'
+        : 'إجابة صحيحة ومتقاربة جداً مع الحل المعتمد في المنهج.',
     };
   }
 
   // 4. Token overlap (for essays and multi-word answers)
-  const stopWords = new Set([
+  const stopWordsAr = new Set([
     'في', 'من', 'على', 'عن', 'الى', 'إلى', 'مع', 'هذا', 'هذه', 'تم', 'هو', 'هي', 'أن', 'ان',
     'ما', 'لا', 'قد', 'كل', 'او', 'أو', 'حيث', 'بواسطة', 'عبر', 'ذلك', 'تلك', 'التي', 'الذي',
   ]);
+  const stopWordsEn = new Set([
+    'the', 'is', 'are', 'was', 'were', 'in', 'on', 'at', 'to', 'for', 'of', 'and', 'or', 'by',
+    'with', 'this', 'that', 'an', 'a', 'as', 'it', 'be', 'from', 'which', 'than',
+  ]);
+
+  const stopWords = isEn ? stopWordsEn : stopWordsAr;
   const userWords = new Set(
     normUser.split(' ').filter((w) => w.length > 2 && !stopWords.has(w))
   );
@@ -133,12 +178,14 @@ const verifyStudentText = (
     });
 
     const matchRatio = matchedWords / correctWords.length;
-    if (matchRatio >= 0.4) {
+    if (matchRatio >= 0.35) {
       const score = Math.min(100, Math.round(matchRatio * 100));
       return {
         isCorrect: true,
         matchScore: score,
-        feedback: `إجابة صحيحة بنسبة توافق ${score}%! تحتوي المسودة على المفاهيم والكلمات المفتاحية الأساسية.`,
+        feedback: isEn
+          ? `Correct answer with ${score}% match ratio! Your draft contains key concepts and terms.`
+          : `إجابة صحيحة بنسبة توافق ${score}%! تحتوي المسودة على المفاهيم والكلمات المفتاحية الأساسية.`,
       };
     }
   }
@@ -146,7 +193,9 @@ const verifyStudentText = (
   return {
     isCorrect: false,
     matchScore: 0,
-    feedback: 'الإجابة المدونة في المسودة غير مطابقة أو ينقصها التدقيق. راجع الحل النموذجي المعتمد أدناه.',
+    feedback: isEn
+      ? 'The drafted answer is incomplete or needs review. Compare with the official model solution below.'
+      : 'الإجابة المدونة في المسودة غير مطابقة أو ينقصها التدقيق. راجع الحل النموذجي المعتمد أدناه.',
   };
 };
 
@@ -169,9 +218,11 @@ export const QuestionsDisplay: React.FC<QuestionsDisplayProps> = ({
   onSaveToSavedBatches,
   isSaved,
 }) => {
+  const { language, t, isRtl } = useLanguage();
+  const isEn = language === 'en';
+
   const [viewMode, setViewMode] = useState<'teacher' | 'student' | 'exam'>('teacher');
   const [expandedExplanations, setExpandedExplanations] = useState<Record<string, boolean>>(
-    // Default open in teacher mode
     () => questions.reduce((acc, q) => ({ ...acc, [q.id]: true }), {})
   );
   const [studentAnswers, setStudentAnswers] = useState<Record<string, string>>({});
@@ -211,7 +262,6 @@ export const QuestionsDisplay: React.FC<QuestionsDisplayProps> = ({
       ...prev,
       [questionId]: text,
     }));
-    // If changed after verification, invalidate verification
     if (draftVerifications[questionId]) {
       setDraftVerifications((prev) => {
         const next = { ...prev };
@@ -254,7 +304,8 @@ export const QuestionsDisplay: React.FC<QuestionsDisplayProps> = ({
     const result = verifyStudentText(
       textToVerify,
       targetQuestion.correctAnswer,
-      targetQuestion.options
+      targetQuestion.options,
+      language
     );
 
     setDraftVerifications((prev) => ({
@@ -340,16 +391,17 @@ export const QuestionsDisplay: React.FC<QuestionsDisplayProps> = ({
   const handleCopyQuestion = (q: QuestionItem) => {
     let text = `${q.question}\n`;
     if (q.codeSnippet) {
-      text += `\nالكود البرمجي:\n${q.codeSnippet}\n`;
+      text += `\n${isEn ? 'Code Snippet:' : 'الكود البرمجي:'}\n${q.codeSnippet}\n`;
     }
     if (q.options) {
-      text += `\nالخيارات:\n${q.options.map((opt, i) => `${i + 1}) ${opt}`).join('\n')}\n`;
+      const letters = isEn ? ['A', 'B', 'C', 'D'] : ['أ', 'ب', 'ج', 'د'];
+      text += `\n${isEn ? 'Options:' : 'الخيارات:'}\n${q.options.map((opt, i) => `${letters[i]}) ${opt}`).join('\n')}\n`;
     }
     if (essayAnswers[q.id]?.trim()) {
-      text += `\nإجابة الطالب: ${essayAnswers[q.id]}\n`;
+      text += `\n${isEn ? 'Student Answer:' : 'إجابة الطالب:'} ${essayAnswers[q.id]}\n`;
     }
     if (viewMode === 'teacher') {
-      text += `\nالإجابة الصحيحة: ${q.correctAnswer}\nالتفسير التربوي: ${q.explanation}\nمعيار التقييم: ${q.rubricCriteria}\n`;
+      text += `\n${isEn ? 'Correct Answer:' : 'الإجابة الصحيحة:'} ${q.correctAnswer}\n${isEn ? 'Explanation:' : 'التفسير التربوي:'} ${q.explanation}\n${isEn ? 'Rubric Criteria:' : 'معيار التقييم:'} ${q.rubricCriteria}\n`;
     }
 
     navigator.clipboard.writeText(text);
@@ -358,25 +410,28 @@ export const QuestionsDisplay: React.FC<QuestionsDisplayProps> = ({
   };
 
   const handleCopyAllQuestions = () => {
-    let fullText = `اختبار مادة البرمجة والذكاء الاصطناعي - الصف الثاني بالبكالوريا المصرية\n`;
-    fullText += `الفصل: ${chapterTitle}\nالدرس: ${lessonTitle}\nعدد الأسئلة: ${questions.length}\n`;
+    let fullText = isEn
+      ? `Programming & AI Exam — Secondary Grade 11 (Egyptian Baccalaureate)\n`
+      : `اختبار مادة البرمجة والذكاء الاصطناعي - الصف الثاني بالبكالوريا المصرية\n`;
+    fullText += `${isEn ? 'Unit' : 'الفصل'}: ${chapterTitle}\n${isEn ? 'Lesson' : 'الدرس'}: ${lessonTitle}\n${isEn ? 'Questions Count' : 'عدد الأسئلة'}: ${questions.length}\n`;
     fullText += `==============================================\n\n`;
 
     questions.forEach((q, idx) => {
-      fullText += `السؤال ${idx + 1}: ${q.question}\n`;
+      fullText += `${isEn ? 'Question' : 'السؤال'} ${idx + 1}: ${q.question}\n`;
       if (q.codeSnippet) {
-        fullText += `\nالكود البرمجي:\n${q.codeSnippet}\n`;
+        fullText += `\n${isEn ? 'Code Snippet:' : 'الكود البرمجي:'}\n${q.codeSnippet}\n`;
       }
       if (q.options) {
-        fullText += `الخيارات:\n${q.options.map((opt, i) => `(${i + 1}) ${opt}`).join('\n')}\n`;
+        const letters = isEn ? ['A', 'B', 'C', 'D'] : ['أ', 'ب', 'ج', 'د'];
+        fullText += `${isEn ? 'Options:' : 'الخيارات:'}\n${q.options.map((opt, i) => `(${letters[i]}) ${opt}`).join('\n')}\n`;
       }
       if (essayAnswers[q.id]?.trim()) {
-        fullText += `إجابة الطالب: ${essayAnswers[q.id]}\n`;
+        fullText += `${isEn ? 'Student Answer:' : 'إجابة الطالب:'} ${essayAnswers[q.id]}\n`;
       }
       if (viewMode === 'teacher') {
-        fullText += `الإجابة النموذجية: ${q.correctAnswer}\n`;
-        fullText += `التفسير العلمي: ${q.explanation}\n`;
-        fullText += `معيار الدرجة: ${q.rubricCriteria}\n`;
+        fullText += `${isEn ? 'Model Answer:' : 'الإجابة النموذجية:'} ${q.correctAnswer}\n`;
+        fullText += `${isEn ? 'Explanation:' : 'التفسير العلمي:'} ${q.explanation}\n`;
+        fullText += `${isEn ? 'Rubric Criteria:' : 'معيار الدرجة:'} ${q.rubricCriteria}\n`;
       }
       fullText += `\n----------------------------------------------\n\n`;
     });
@@ -395,30 +450,38 @@ export const QuestionsDisplay: React.FC<QuestionsDisplayProps> = ({
   }
 
   const getTypeLabel = (type: QuestionItem['type']) => {
+    if (isEn) {
+      switch (type) {
+        case 'mcq': return 'Multiple Choice (MCQ)';
+        case 'true_false': return 'True / False';
+        case 'code_trace': return 'Applied Task';
+        case 'short_answer': return 'Essay & Analysis';
+        default: return 'Curriculum Question';
+      }
+    }
     switch (type) {
-      case 'mcq':
-        return 'اختيار من متعدد';
-      case 'true_false':
-        return 'صواب أو خطأ';
-      case 'code_trace':
-        return 'سؤال تطبيقي وعملي';
-      case 'short_answer':
-        return 'سؤال مقالي وتحليلي';
-      default:
-        return 'سؤال منهجي';
+      case 'mcq': return 'اختيار من متعدد';
+      case 'true_false': return 'صواب أو خطأ';
+      case 'code_trace': return 'سؤال تطبيقي وعملي';
+      case 'short_answer': return 'سؤال مقالي وتحليلي';
+      default: return 'سؤال منهجي';
     }
   };
 
   const getLevelLabel = (level: QuestionItem['thinkingLevel']) => {
+    if (isEn) {
+      switch (level) {
+        case 'remembering': return 'Remembering & Understanding';
+        case 'applying': return 'Applying & Analysis';
+        case 'evaluating': return 'Evaluating & Innovation';
+        default: return 'Comprehensive Level';
+      }
+    }
     switch (level) {
-      case 'remembering':
-        return 'مستوى التذكر والفهم';
-      case 'applying':
-        return 'مستوى التطبيق والتحليل';
-      case 'evaluating':
-        return 'مستوى التقويم والابتكار';
-      default:
-        return 'مستوى شامل';
+      case 'remembering': return 'مستوى التذكر والفهم';
+      case 'applying': return 'مستوى التطبيق والتحليل';
+      case 'evaluating': return 'مستوى التقويم والابتكار';
+      default: return 'مستوى شامل';
     }
   };
 
@@ -433,11 +496,11 @@ export const QuestionsDisplay: React.FC<QuestionsDisplayProps> = ({
             <span className="font-medium text-slate-700">{lessonTitle}</span>
             <span aria-hidden="true" className="text-slate-300">·</span>
             <span className="font-bold text-sky-700 tabular-nums">
-              {questions.length} أسئلة بالدفعة
+              {questions.length} {t('questionsCount')}
             </span>
           </div>
           <h3 className="text-lg sm:text-xl font-bold text-slate-900 tracking-tight">
-            دفعة الأسئلة الحالية ونموذج الإجابة والتفسيرات
+            {t('batchTitle')}
           </h3>
         </div>
 
@@ -455,7 +518,7 @@ export const QuestionsDisplay: React.FC<QuestionsDisplayProps> = ({
               }`}
             >
               <BookOpen className="w-3.5 h-3.5 text-indigo-600" />
-              <span>نمط المعلم</span>
+              <span>{t('modeTeacher')}</span>
             </button>
             <button
               type="button"
@@ -467,7 +530,7 @@ export const QuestionsDisplay: React.FC<QuestionsDisplayProps> = ({
               }`}
             >
               <GraduationCap className="w-3.5 h-3.5" />
-              <span>تدريب تفاعلي للطلاب</span>
+              <span>{t('modeStudent')}</span>
             </button>
             <button
               type="button"
@@ -479,7 +542,7 @@ export const QuestionsDisplay: React.FC<QuestionsDisplayProps> = ({
               }`}
             >
               <Printer className="w-3.5 h-3.5 text-slate-600" />
-              <span>ورقة الاختبار</span>
+              <span>{t('modeExam')}</span>
             </button>
           </div>
 
@@ -487,18 +550,18 @@ export const QuestionsDisplay: React.FC<QuestionsDisplayProps> = ({
           <button
             type="button"
             onClick={handleCopyAllQuestions}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-slate-700 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-lg transition-colors"
-            title="نسخ كافة الأسئلة إلى الحافظة"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-slate-700 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-lg transition-colors cursor-pointer"
+            title={t('copyBatch')}
           >
             {allCopied ? (
               <>
                 <Check className="w-3.5 h-3.5 text-emerald-600" />
-                <span className="text-emerald-700 font-semibold">تم النسخ!</span>
+                <span className="text-emerald-700 font-semibold">{t('copiedSuccess')}</span>
               </>
             ) : (
               <>
                 <Copy className="w-3.5 h-3.5" />
-                <span>نسخ الدفعة</span>
+                <span>{t('copyBatch')}</span>
               </>
             )}
           </button>
@@ -507,30 +570,29 @@ export const QuestionsDisplay: React.FC<QuestionsDisplayProps> = ({
           <button
             type="button"
             onClick={handlePrint}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-slate-800 bg-white hover:bg-slate-50 border border-slate-300 hover:border-slate-400 rounded-lg shadow-2xs hover:shadow-xs transition-colors active:scale-95"
-            title="طباعة الأسئلة على الورق مباشرة"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-slate-800 bg-white hover:bg-slate-50 border border-slate-300 hover:border-slate-400 rounded-lg shadow-2xs hover:shadow-xs transition-colors active:scale-95 cursor-pointer"
+            title={t('printExam')}
           >
             <Printer className="w-3.5 h-3.5 text-slate-700" />
-            <span>طباعة الأسئلة</span>
+            <span>{t('printExam')}</span>
           </button>
-
 
           {viewMode === 'teacher' && (
             <button
               type="button"
               onClick={toggleAllExplanations}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-slate-700 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-lg transition-colors"
-              title="إخفاء أو إظهار كافة التفسيرات"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-slate-700 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-lg transition-colors cursor-pointer"
+              title={t('toggleExplanationsHide')}
             >
               {Object.values(expandedExplanations).every(Boolean) ? (
                 <>
                   <EyeOff className="w-3.5 h-3.5" />
-                  <span>طي التفسيرات</span>
+                  <span>{t('toggleExplanationsHide')}</span>
                 </>
               ) : (
                 <>
                   <Eye className="w-3.5 h-3.5" />
-                  <span>توسيع التفسيرات</span>
+                  <span>{t('toggleExplanationsShow')}</span>
                 </>
               )}
             </button>
@@ -540,14 +602,14 @@ export const QuestionsDisplay: React.FC<QuestionsDisplayProps> = ({
             <button
               type="button"
               onClick={onSaveToSavedBatches}
-              className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium border rounded-lg transition-colors ${
+              className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium border rounded-lg transition-colors cursor-pointer ${
                 isSaved
                   ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
                   : 'bg-sky-50 text-sky-800 border-sky-200 hover:bg-sky-100'
               }`}
             >
               <FileCheck className="w-3.5 h-3.5" />
-              <span>{isSaved ? 'محفوظ في النماذج' : 'حفظ في النماذج'}</span>
+              <span>{isSaved ? t('savedBadge') : t('saveBatch')}</span>
             </button>
           )}
         </div>
@@ -562,22 +624,22 @@ export const QuestionsDisplay: React.FC<QuestionsDisplayProps> = ({
             </div>
             <div>
               <div className="font-bold text-slate-900 text-sm flex items-center gap-2">
-                <span>نمط التدريب والمذاكرة التفاعلية للطلاب</span>
+                <span>{t('studentPracticeTitle')}</span>
                 <span className="text-[11px] font-semibold text-indigo-700 bg-white/90 border border-indigo-200 px-2 py-0.5 rounded-full shadow-2xs">
-                  تقييم فوري وتشجيعي
+                  {isEn ? 'Instant Feedback' : 'تقييم فوري وتشجيعي'}
                 </span>
               </div>
               <p className="text-xs text-slate-600 mt-0.5">
-                حل الأسئلة التفاعلية، اكتب تحليلك في الأسئلة المقالية ومسودة الحل، وتحقق من صحة إجابتك فورياً
+                {t('studentPracticeDesc')}
               </p>
             </div>
           </div>
 
           <div className="flex items-center gap-3 shrink-0">
             <div className="text-center px-3.5 py-1.5 bg-white rounded-xl border border-slate-200/90 shadow-2xs">
-              <div className="text-[10px] text-slate-500 font-medium">النتيجة والتقدم</div>
+              <div className="text-[10px] text-slate-500 font-medium">{t('totalProgress')}</div>
               <div className="text-sm font-bold text-indigo-700 font-mono tabular-nums">
-                {totalCorrectCount} / {totalAnsweredCount > 0 ? totalAnsweredCount : questions.length} {totalAnsweredCount > 0 ? 'مكتملة' : 'سؤال'}
+                {totalCorrectCount} / {totalAnsweredCount > 0 ? totalAnsweredCount : questions.length} {totalAnsweredCount > 0 ? (isEn ? 'Completed' : 'مكتملة') : (isEn ? 'Questions' : 'سؤال')}
               </div>
             </div>
 
@@ -588,16 +650,15 @@ export const QuestionsDisplay: React.FC<QuestionsDisplayProps> = ({
                 type="button"
                 onClick={handleResetStudentQuiz}
                 className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-slate-700 bg-white hover:bg-slate-50 border border-slate-200 rounded-xl shadow-2xs hover:shadow-xs transition-all cursor-pointer"
-                title="إعادة بدء الاختبار التفاعلي ومسح الإجابات والمسودات"
+                title={t('resetPractice')}
               >
                 <RotateCcw className="w-3.5 h-3.5 text-slate-500" />
-                <span>إعادة البدء</span>
+                <span>{isEn ? 'Reset' : 'إعادة البدء'}</span>
               </button>
             )}
           </div>
         </div>
       )}
-
 
       {/* Generation Engine Banner */}
       {engineNotice && (
@@ -607,47 +668,51 @@ export const QuestionsDisplay: React.FC<QuestionsDisplayProps> = ({
             <span>{engineNotice}</span>
           </div>
           <span className="font-mono text-[11px] text-slate-500 shrink-0">
-            {generationSource === 'gemini-3.8-flash' ? 'Gemini 3.8 Flash' : 'Official Curriculum'}
+            {generationSource === 'gemini-3.8-flash' ? 'Gemini 3.8 Flash' : (isEn ? 'Curriculum Bank' : 'بنك الأسئلة المعتمد')}
           </span>
         </div>
       )}
 
       {/* Printable Official Exam Header (Visible ONLY during print) */}
-      <div className="hidden print:block pb-4 mb-6 border-b-2 border-slate-900 text-slate-900">
+      <div className="hidden print:block pb-4 mb-6 border-b-2 border-slate-900 text-slate-900" dir={isEn ? "ltr" : "rtl"}>
         <div className="flex justify-between items-start text-xs pb-3 mb-3 border-b border-slate-300">
-          <div className="text-right space-y-0.5">
-            <p className="font-bold text-sm">جمهورية مصر العربية</p>
-            <p className="font-semibold text-xs text-slate-800">وزارة التربية والتعليم والتعليم الفني</p>
-            <p className="text-[11px] text-slate-600">قطاع التعليم العام — مادة البرمجة والذكاء الاصطناعي</p>
+          <div className={`${isEn ? 'text-left' : 'text-right'} space-y-0.5`}>
+            <p className="font-bold text-sm">{t('republicTitle')}</p>
+            <p className="font-semibold text-xs text-slate-800">{t('ministryTitle')}</p>
+            <p className="text-[11px] text-slate-600">{t('sectorTitle')}</p>
           </div>
           <div className="text-center space-y-1">
-            <h1 className="text-base font-bold tracking-tight">ورقة تقييم مادة البرمجة والذكاء الاصطناعي</h1>
-            <p className="font-semibold text-xs text-slate-700">الصف الثاني الثانوي (البكالوريا المصرية)</p>
+            <h1 className="text-base font-bold tracking-tight">
+              {viewMode === 'teacher' ? t('examRubricTitle') : t('examTitle')}
+            </h1>
+            <p className="font-semibold text-xs text-slate-700">{t('stageGrade')}</p>
             <span className="inline-block text-[11px] font-medium px-2.5 py-0.5 rounded border border-slate-300 bg-slate-50">
-              {viewMode === 'teacher' ? 'دليل المعلم ونموذج الإجابة الرسمي' : 'ورقة اختبار الطالب'}
+              {viewMode === 'teacher'
+                ? (isEn ? 'Teacher Answer Key & Marking Scheme' : 'دليل المعلم ونموذج الإجابة الرسمي')
+                : (isEn ? 'Official Student Exam Sheet' : 'ورقة اختبار الطالب')}
             </span>
           </div>
-          <div className="text-left space-y-0.5 text-xs font-mono">
-            <p className="font-sans"><span className="font-semibold">الدرجة الكلية:</span> [ &nbsp;&nbsp;&nbsp;&nbsp; / 20 ]</p>
-            <p className="font-sans"><span className="font-semibold">الزمن المقترح:</span> 45 دقيقة</p>
-            <p className="font-sans text-[11px] text-slate-500">العام الدراسي 2026 / 2027</p>
+          <div className={`${isEn ? 'text-right' : 'text-left'} space-y-0.5 text-xs font-mono`}>
+            <p className="font-sans"><span className="font-semibold">{t('totalGradeLabel')}</span></p>
+            <p className="font-sans"><span className="font-semibold">{t('timeAllowed')}</span></p>
+            <p className="font-sans text-[11px] text-slate-500">{t('academicYear')}</p>
           </div>
         </div>
 
         {/* Student identification bar in Exam mode */}
         {(viewMode === 'exam' || viewMode === 'student') && (
           <div className="grid grid-cols-3 gap-3 text-xs font-medium py-2 px-3 bg-slate-50 border border-slate-300 rounded-md mb-3">
-            <div><span className="font-bold">اسم الطالب:</span> ............................................</div>
-            <div><span className="font-bold">رقم الجلوس / الفصل:</span> ....................</div>
-            <div><span className="font-bold">تاريخ الاختبار:</span> ..... / ..... / 2026 م</div>
+            <div><span className="font-bold">{t('studentNameLine')}</span> ............................................</div>
+            <div><span className="font-bold">{t('seatNumberLine')}</span> ....................</div>
+            <div><span className="font-bold">{t('dateLine')}</span></div>
           </div>
         )}
 
         {/* Exam specifications summary */}
         <div className="flex justify-between items-center text-xs text-slate-700 pt-1">
-          <div><span className="font-bold text-slate-900">المجال / الفصل:</span> {chapterTitle}</div>
-          <div><span className="font-bold text-slate-900">موضوع التقييم:</span> {lessonTitle}</div>
-          <div><span className="font-bold text-slate-900">إجمالي الأسئلة:</span> {questions.length} سؤال</div>
+          <div><span className="font-bold text-slate-900">{t('unitField')}</span> {chapterTitle}</div>
+          <div><span className="font-bold text-slate-900">{t('topicField')}</span> {lessonTitle}</div>
+          <div><span className="font-bold text-slate-900">{isEn ? 'Total Questions:' : 'إجمالي الأسئلة:'}</span> {questions.length} {isEn ? 'Questions' : 'سؤال'}</div>
         </div>
       </div>
 
@@ -658,6 +723,7 @@ export const QuestionsDisplay: React.FC<QuestionsDisplayProps> = ({
           const studentSelectedOpt = studentAnswers[q.id];
           const hasStudentAnswered = Boolean(studentSelectedOpt);
           const isStudentCorrect = studentSelectedOpt === q.correctAnswer;
+          const optionLetters = isEn ? ['A', 'B', 'C', 'D'] : ['أ', 'ب', 'ج', 'د'];
 
           return (
             <article
@@ -691,7 +757,7 @@ export const QuestionsDisplay: React.FC<QuestionsDisplayProps> = ({
                     type="button"
                     onClick={() => handleCopyQuestion(q)}
                     className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
-                    title="نسخ السؤال"
+                    title={t('copyQuestion')}
                   >
                     {copiedId === q.id ? (
                       <Check className="w-4 h-4 text-emerald-600" />
@@ -705,7 +771,7 @@ export const QuestionsDisplay: React.FC<QuestionsDisplayProps> = ({
                       type="button"
                       onClick={() => toggleExplanation(q.id)}
                       className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
-                      title={isExpanded ? 'طي الإجابة والتفسير' : 'إظهار الإجابة والتفسير'}
+                      title={isExpanded ? t('hideExplanation') : t('showExplanation')}
                     >
                       {isExpanded ? (
                         <EyeOff className="w-4 h-4" />
@@ -722,7 +788,7 @@ export const QuestionsDisplay: React.FC<QuestionsDisplayProps> = ({
                 {q.question}
               </div>
 
-              {/* Code Snippet with macOS terminal styling */}
+              {/* Code / Scenario Snippet */}
               {q.codeSnippet && (
                 <div className="mt-4 bg-slate-950 text-slate-100 rounded-xl overflow-hidden border border-slate-800 shadow-md print:bg-slate-50 print:text-slate-900 print:border-slate-300">
                   <div className="flex items-center justify-between px-3.5 py-2 bg-slate-900/90 border-b border-slate-800 text-[11px] text-slate-400 print:bg-slate-100 print:text-slate-700 print:border-slate-300">
@@ -732,7 +798,9 @@ export const QuestionsDisplay: React.FC<QuestionsDisplayProps> = ({
                         <span className="w-2.5 h-2.5 rounded-full bg-amber-500/80 inline-block"></span>
                         <span className="w-2.5 h-2.5 rounded-full bg-emerald-500/80 inline-block"></span>
                       </div>
-                      <span className="font-mono text-xs font-semibold text-sky-300 print:text-slate-900">السيناريو والتطبيق العملي</span>
+                      <span className="font-mono text-xs font-semibold text-sky-300 print:text-slate-900">
+                        {isEn ? 'Applied Scenario & Technical Context' : 'السيناريو والتطبيق العملي'}
+                      </span>
                     </div>
                     <button
                       type="button"
@@ -746,12 +814,12 @@ export const QuestionsDisplay: React.FC<QuestionsDisplayProps> = ({
                       {copiedCodeId === q.id ? (
                         <>
                           <Check className="w-3.5 h-3.5 text-emerald-400" />
-                          <span className="text-emerald-300 font-semibold">تم النسخ</span>
+                          <span className="text-emerald-300 font-semibold">{isEn ? 'Copied' : 'تم النسخ'}</span>
                         </>
                       ) : (
                         <>
                           <Copy className="w-3.5 h-3.5 text-slate-400" />
-                          <span>نسخ الكود</span>
+                          <span>{isEn ? 'Copy Snippet' : 'نسخ الكود'}</span>
                         </>
                       )}
                     </button>
@@ -766,7 +834,7 @@ export const QuestionsDisplay: React.FC<QuestionsDisplayProps> = ({
               {q.options && q.options.length > 0 && (
                 <div className="mt-4 space-y-2.5">
                   {q.options.map((opt, optIdx) => {
-                    const letter = ['أ', 'ب', 'ج', 'د'][optIdx] || `${optIdx + 1}`;
+                    const letter = optionLetters[optIdx] || `${optIdx + 1}`;
 
                     // Teacher Mode states
                     const isTeacherCorrect = viewMode === 'teacher' && opt === q.correctAnswer;
@@ -823,23 +891,23 @@ export const QuestionsDisplay: React.FC<QuestionsDisplayProps> = ({
                         <div className="flex-1 pt-0.5">{opt}</div>
                         {isTeacherCorrect && (
                           <span className="text-xs font-bold text-emerald-700 shrink-0 print:text-emerald-800">
-                            (الإجابة الصحيحة)
+                            {isEn ? '(Model Answer)' : '(الإجابة الصحيحة)'}
                           </span>
                         )}
                         {viewMode === 'student' && hasStudentAnswered && isStudentSelected && isStudentCorrect && (
                           <span className="text-xs font-bold text-emerald-700 flex items-center gap-1 shrink-0">
                             <Check className="w-3.5 h-3.5" />
-                            <span>إجابة صحيحة!</span>
+                            <span>{isEn ? 'Correct Answer!' : 'إجابة صحيحة!'}</span>
                           </span>
                         )}
                         {viewMode === 'student' && hasStudentAnswered && isStudentSelected && !isStudentCorrect && (
                           <span className="text-xs font-bold text-rose-700 shrink-0">
-                            اختيارك غير صحيح
+                            {isEn ? 'Incorrect Selection' : 'اختيارك غير صحيح'}
                           </span>
                         )}
                         {viewMode === 'student' && hasStudentAnswered && !isStudentSelected && isOptionTheCorrectAnswer && (
                           <span className="text-xs font-bold text-emerald-700 shrink-0">
-                            (الإجابة النموذجية الصحيحة)
+                            {isEn ? '(Official Solution)' : '(الإجابة النموذجية الصحيحة)'}
                           </span>
                         )}
                       </div>
@@ -857,7 +925,9 @@ export const QuestionsDisplay: React.FC<QuestionsDisplayProps> = ({
                         <Check className="w-3.5 h-3.5" />
                       </div>
                       <div>
-                        <div className="font-bold text-sm text-emerald-950">🎉 أحسنت صنعاً! إجابة صحيحة ومتقنة.</div>
+                        <div className="font-bold text-sm text-emerald-950">
+                          {isEn ? '🎉 Well done! Correct and precise answer.' : '🎉 أحسنت صنعاً! إجابة صحيحة ومتقنة.'}
+                        </div>
                         <div className="text-emerald-800 mt-1 leading-relaxed">{q.explanation}</div>
                       </div>
                     </div>
@@ -868,7 +938,9 @@ export const QuestionsDisplay: React.FC<QuestionsDisplayProps> = ({
                       </div>
                       <div>
                         <div className="font-bold text-sm text-amber-950">
-                          💡 إجابة غير دقيقة — الإجابة الصحيحة هي: «{q.correctAnswer}»
+                          {isEn
+                            ? `💡 Needs Revision — Correct Model Answer is: "${q.correctAnswer}"`
+                            : `💡 إجابة غير دقيقة — الإجابة الصحيحة هي: «${q.correctAnswer}»`}
                         </div>
                         <div className="text-amber-800 mt-1 leading-relaxed">{q.explanation}</div>
                       </div>
@@ -887,7 +959,7 @@ export const QuestionsDisplay: React.FC<QuestionsDisplayProps> = ({
                       className="inline-flex items-center gap-2 text-xs font-bold text-slate-700 hover:text-indigo-700 py-1 px-2.5 rounded-lg hover:bg-indigo-50/50 transition-colors cursor-pointer"
                     >
                       <PenLine className="w-3.5 h-3.5 text-indigo-600" />
-                      <span>مسودة الطالب وتتبع الكود (كتابة خطوات الحل وفحص الإجابة)</span>
+                      <span>{isEn ? 'Student Scratchpad & Answer Verification' : 'مسودة الطالب وتتبع الكود (كتابة خطوات الحل وفحص الإجابة)'}</span>
                       {studentDrafts[q.id]?.trim() && (
                         <span className="w-2 h-2 rounded-full bg-indigo-500 animate-pulse" />
                       )}
@@ -899,7 +971,9 @@ export const QuestionsDisplay: React.FC<QuestionsDisplayProps> = ({
                               : 'bg-rose-100 text-rose-800 border border-rose-200'
                           }`}
                         >
-                          {draftVerifications[q.id].isCorrect ? '✓ تم التحقق: صحيحة' : '✗ تم التحقق: غير مطابقة'}
+                          {draftVerifications[q.id].isCorrect
+                            ? (isEn ? '✓ Verified: Correct' : '✓ تم التحقق: صحيحة')
+                            : (isEn ? '✗ Verified: Non-matching' : '✗ تم التحقق: غير مطابقة')}
                         </span>
                       )}
                     </button>
@@ -909,7 +983,9 @@ export const QuestionsDisplay: React.FC<QuestionsDisplayProps> = ({
                       onClick={() => toggleDraft(q.id)}
                       className="text-[11px] text-slate-500 hover:text-indigo-600 transition-colors cursor-pointer font-medium"
                     >
-                      {openDrafts[q.id] ? 'إخفاء المسودة ▲' : 'فتح مسودة الطالب والكتابة والتحقق ▼'}
+                      {openDrafts[q.id]
+                        ? (isEn ? 'Hide Scratchpad ▲' : 'إخفاء المسودة ▲')
+                        : (isEn ? 'Open Scratchpad & Verify ▼' : 'فتح مسودة الطالب والكتابة والتحقق ▼')}
                     </button>
                   </div>
 
@@ -918,12 +994,12 @@ export const QuestionsDisplay: React.FC<QuestionsDisplayProps> = ({
                     <div className="mt-2.5 p-3.5 rounded-xl bg-slate-50 border border-slate-200/90 space-y-3">
                       <div>
                         <label className="block text-[11px] font-semibold text-slate-600 mb-1">
-                          اكتب مسودتك، تتبع المتغيرات، أو استنتاجك للتحقق من صحته:
+                          {t('scratchpadLabel')}
                         </label>
                         <textarea
                           value={studentDrafts[q.id] || ''}
                           onChange={(e) => handleDraftChange(q.id, e.target.value)}
-                          placeholder="اكتب مسودتك هنا: تتبع قيم المتغيرات، خطوات الحل، اختيارك المبدئي، أو استنتاجك البرمجي..."
+                          placeholder={t('scratchpadPlaceholder')}
                           rows={3}
                           className="w-full p-3 bg-white border border-slate-300 rounded-lg text-xs font-mono text-slate-800 placeholder:text-slate-400 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all leading-relaxed"
                         />
@@ -932,7 +1008,7 @@ export const QuestionsDisplay: React.FC<QuestionsDisplayProps> = ({
                       {/* Draft Action Controls */}
                       <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
                         <span className="text-[11px] text-slate-500 font-mono">
-                          {studentDrafts[q.id]?.length || 0} حرف مدون في مسودة الطالب
+                          {studentDrafts[q.id]?.length || 0} {isEn ? 'chars in draft' : 'حرف مدون في مسودة الطالب'}
                         </span>
 
                         <div className="flex items-center gap-2">
@@ -945,7 +1021,7 @@ export const QuestionsDisplay: React.FC<QuestionsDisplayProps> = ({
                               }}
                               className="px-2.5 py-1.5 text-[11px] font-medium text-slate-500 hover:text-slate-800 bg-white border border-slate-200 rounded-lg transition-colors cursor-pointer"
                             >
-                              مسح المسودة
+                              {isEn ? 'Clear Draft' : 'مسح المسودة'}
                             </button>
                           )}
 
@@ -960,7 +1036,7 @@ export const QuestionsDisplay: React.FC<QuestionsDisplayProps> = ({
                             }`}
                           >
                             <CheckCheck className="w-3.5 h-3.5" />
-                            <span>التحقق من إجابة المسودة (صحيحة أم خطأ)</span>
+                            <span>{t('verifyAnswerBtn')}</span>
                           </button>
                         </div>
                       </div>
@@ -980,13 +1056,17 @@ export const QuestionsDisplay: React.FC<QuestionsDisplayProps> = ({
                                 <>
                                   <CheckCircle2 className="w-4 h-4 text-emerald-600" />
                                   <span className="text-emerald-900">
-                                    ✓ إجابة المسودة صحيحة ومطابقة! (نسبة التوافق: {draftVerifications[q.id].matchScore}%)
+                                    {isEn
+                                      ? `✓ Correct answer! (Match Score: ${draftVerifications[q.id].matchScore}%)`
+                                      : `✓ إجابة المسودة صحيحة ومطابقة! (نسبة التوافق: ${draftVerifications[q.id].matchScore}%)`}
                                   </span>
                                 </>
                               ) : (
                                 <>
                                   <XCircle className="w-4 h-4 text-rose-600" />
-                                  <span className="text-rose-900">✗ إجابة المسودة غير مطابقة / خطأ</span>
+                                  <span className="text-rose-900">
+                                    {isEn ? '✗ Answer needs revision / non-matching' : '✗ إجابة المسودة غير مطابقة / خطأ'}
+                                  </span>
                                 </>
                               )}
                             </div>
@@ -996,7 +1076,7 @@ export const QuestionsDisplay: React.FC<QuestionsDisplayProps> = ({
                               onClick={() => handleClearVerification(q.id)}
                               className="text-[11px] underline opacity-70 hover:opacity-100 cursor-pointer"
                             >
-                              إغلاق التحقق
+                              {t('close')}
                             </button>
                           </div>
 
@@ -1004,11 +1084,11 @@ export const QuestionsDisplay: React.FC<QuestionsDisplayProps> = ({
 
                           <div className="pt-2 border-t border-slate-200/60 flex flex-col gap-1">
                             <div className="font-semibold text-slate-900">
-                              <span>الإجابة النموذجية المعتمدة: </span>
+                              <span>{isEn ? 'Official Model Answer: ' : 'الإجابة النموذجية المعتمدة: '}</span>
                               <span className="font-bold text-indigo-950">{q.correctAnswer}</span>
                             </div>
                             <div className="text-slate-600">
-                              <span>التفسير والشرح: </span>
+                              <span>{isEn ? 'Explanation: ' : 'التفسير والشرح: '}</span>
                               <span>{q.explanation}</span>
                             </div>
                           </div>
@@ -1032,19 +1112,19 @@ export const QuestionsDisplay: React.FC<QuestionsDisplayProps> = ({
                           </div>
                           <div>
                             <span className="text-xs sm:text-sm font-bold text-slate-900 block">
-                              صندوق إجابة وتحليل الطالب (سؤال مقالي)
+                              {isEn ? 'Student Essay & Analytical Answer Box' : 'صندوق إجابة وتحليل الطالب (سؤال مقالي)'}
                             </span>
                             <span className="text-[11px] text-slate-500">
-                              اكتب تحليلك العلمي، المفاهيم الأساسية، والخطوات بالتفصيل
+                              {isEn ? 'Write your technical analysis, definitions, and reasoning in detail' : 'اكتب تحليلك العلمي، المفاهيم الأساسية، والخطوات بالتفصيل'}
                             </span>
                           </div>
                         </div>
 
-                        {/* Word/Character counter */}
+                        {/* Word counter */}
                         <div className="text-[11px] font-mono text-slate-500 bg-slate-100/80 px-2.5 py-1 rounded-lg border border-slate-200 self-start sm:self-center shrink-0">
-                          <span>{essayAnswers[q.id]?.trim() ? essayAnswers[q.id].trim().split(/\s+/).length : 0} كلمة</span>
+                          <span>{essayAnswers[q.id]?.trim() ? essayAnswers[q.id].trim().split(/\s+/).length : 0} {isEn ? 'words' : 'كلمة'}</span>
                           <span className="mx-1 text-slate-300">·</span>
-                          <span>{essayAnswers[q.id]?.length || 0} حرف</span>
+                          <span>{essayAnswers[q.id]?.length || 0} {isEn ? 'chars' : 'حرف'}</span>
                         </div>
                       </div>
 
@@ -1054,7 +1134,7 @@ export const QuestionsDisplay: React.FC<QuestionsDisplayProps> = ({
                           <textarea
                             value={essayAnswers[q.id] || ''}
                             onChange={(e) => handleEssayChange(q.id, e.target.value)}
-                            placeholder="اكتب إجابتك وتحليلك العلمي هنا بالتفصيل (اشرح المفهوم البرمجي، القواعد، خطوات الحل، والتعليل المطلوب)..."
+                            placeholder={isEn ? 'Type your detailed analytical response and technical justification here...' : 'اكتب إجابتك وتحليلك العلمي هنا بالتفصيل (اشرح المفهوم البرمجي، القواعد، خطوات الحل، والتعليل المطلوب)...'}
                             rows={4}
                             className="w-full p-3.5 bg-white border border-slate-300 rounded-xl text-xs sm:text-sm text-slate-800 placeholder:text-slate-400 focus:bg-white focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500 transition-all leading-relaxed"
                           />
@@ -1062,8 +1142,8 @@ export const QuestionsDisplay: React.FC<QuestionsDisplayProps> = ({
                           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1">
                             <span className="text-[11px] text-slate-500">
                               {essayAnswers[q.id]?.trim()
-                                ? 'يمكنك التحقق من صحة إجابتك فورياً أو تسليمها للاعتماد والتقييم'
-                                : 'اكتب إجابتك أولاً لتفعيل زر التحقق والتسليم'}
+                                ? (isEn ? 'Verify your draft instantly or submit for model grading' : 'يمكنك التحقق من صحة إجابتك فورياً أو تسليمها للاعتماد والتقييم')
+                                : (isEn ? 'Type your answer to enable verification and submission' : 'اكتب إجابتك أولاً لتفعيل زر التحقق والتسليم')}
                             </span>
 
                             <div className="flex flex-wrap items-center gap-2">
@@ -1078,7 +1158,7 @@ export const QuestionsDisplay: React.FC<QuestionsDisplayProps> = ({
                                 }`}
                               >
                                 <CheckCheck className="w-3.5 h-3.5" />
-                                <span>التحقق من صحة الإجابة (صحيحة / خطأ)</span>
+                                <span>{t('verifyAnswerBtn')}</span>
                               </button>
 
                               <button
@@ -1092,7 +1172,7 @@ export const QuestionsDisplay: React.FC<QuestionsDisplayProps> = ({
                                 }`}
                               >
                                 <Send className="w-3.5 h-3.5" />
-                                <span>تسليم ومطالعة نموذج التصحيح</span>
+                                <span>{isEn ? 'Submit & View Model Rubric' : 'تسليم ومطالعة نموذج التصحيح'}</span>
                               </button>
                             </div>
                           </div>
@@ -1100,153 +1180,121 @@ export const QuestionsDisplay: React.FC<QuestionsDisplayProps> = ({
                           {/* Instant Verification Feedback Card for Essay */}
                           {draftVerifications[q.id] && (
                             <div
-                              className={`p-4 rounded-xl border transition-all text-xs space-y-2.5 ${
+                              className={`p-3.5 rounded-xl border transition-all text-xs space-y-2 mt-2 ${
                                 draftVerifications[q.id].isCorrect
-                                  ? 'bg-emerald-50/90 border-emerald-300 text-emerald-950'
-                                  : 'bg-rose-50/90 border-rose-300 text-rose-950'
+                                  ? 'bg-emerald-50 border-emerald-300 text-emerald-950'
+                                  : 'bg-rose-50 border-rose-300 text-rose-950'
                               }`}
                             >
                               <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-2 font-bold text-sm">
+                                <div className="font-bold text-sm flex items-center gap-1.5">
                                   {draftVerifications[q.id].isCorrect ? (
                                     <>
-                                      <CheckCircle2 className="w-5 h-5 text-emerald-600" />
-                                      <span className="text-emerald-900">
-                                        ✓ إجابتك صحيحة ومطابقة! (نسبة التوافق: {draftVerifications[q.id].matchScore}%)
+                                      <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                                      <span>
+                                        {isEn
+                                          ? `✓ Correct answer! (Match Score: ${draftVerifications[q.id].matchScore}%)`
+                                          : `✓ إجابتك صحيحة ومطابقة! (نسبة التوافق: ${draftVerifications[q.id].matchScore}%)`}
                                       </span>
                                     </>
                                   ) : (
                                     <>
-                                      <XCircle className="w-5 h-5 text-rose-600" />
-                                      <span className="text-rose-900">✗ إجابتك غير مطابقة / خطأ</span>
+                                      <XCircle className="w-4 h-4 text-rose-600" />
+                                      <span>{isEn ? '✗ Answer needs revision' : '✗ إجابتك غير مطابقة / خطأ'}</span>
                                     </>
                                   )}
                                 </div>
-
                                 <button
                                   type="button"
                                   onClick={() => handleClearVerification(q.id)}
-                                  className="text-[11px] font-semibold text-slate-500 hover:text-slate-800 bg-white/80 px-2 py-0.5 rounded border border-slate-200 cursor-pointer"
+                                  className="text-[11px] underline opacity-70 hover:opacity-100 cursor-pointer"
                                 >
-                                  إخفاء التحقق
+                                  {t('close')}
                                 </button>
                               </div>
-
-                              <p className="leading-relaxed font-sans text-xs">
-                                {draftVerifications[q.id].feedback}
-                              </p>
-
-                              <div className="pt-2 border-t border-slate-200/60 space-y-1.5">
-                                <div className="font-semibold text-slate-900">
-                                  <span>الإجابة النموذجية المعتمدة: </span>
-                                  <span className="font-bold text-indigo-900">{q.correctAnswer}</span>
-                                </div>
-                                <div className="text-slate-600">
-                                  <span className="font-semibold">التفسير والشرح: </span>
-                                  <span>{q.explanation}</span>
-                                </div>
+                              <p className="leading-relaxed font-sans">{draftVerifications[q.id].feedback}</p>
+                              <div className="pt-1.5 border-t border-slate-200 font-semibold text-slate-800">
+                                {isEn ? 'Official Model Answer: ' : 'الإجابة النموذجية المعتمدة: '}
+                                <span className="font-bold text-indigo-950">{q.correctAnswer}</span>
                               </div>
                             </div>
                           )}
                         </div>
                       ) : (
-                        /* Submitted View */
-                        <div className="mt-3.5 space-y-4">
-                          {/* Student's recorded text */}
-                          <div className="p-3.5 bg-indigo-50/60 border border-indigo-100 rounded-xl">
-                            <div className="flex items-center justify-between mb-1.5">
-                              <span className="text-xs font-bold text-indigo-950 flex items-center gap-1.5">
+                        /* Submitted Essay View */
+                        <div className="mt-3.5 space-y-3.5">
+                          <div className="p-4 bg-slate-50 border border-slate-200/80 rounded-xl space-y-2">
+                            <div className="flex items-center justify-between text-xs">
+                              <span className="font-bold text-slate-700 flex items-center gap-1.5">
                                 <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                                <span>إجابتك المسجلة:</span>
+                                <span>{isEn ? 'Your Submitted Answer:' : 'إجابتك المسلمة لهذا السؤال:'}</span>
                               </span>
                               <button
                                 type="button"
                                 onClick={() => handleEditEssay(q.id)}
-                                className="inline-flex items-center gap-1 text-[11px] font-semibold text-indigo-700 hover:text-indigo-900 bg-white hover:bg-indigo-50 border border-indigo-200 px-2 py-0.5 rounded-lg transition-colors cursor-pointer"
+                                className="inline-flex items-center gap-1 text-[11px] text-indigo-600 hover:text-indigo-800 font-medium cursor-pointer"
                               >
                                 <Edit3 className="w-3 h-3" />
-                                <span>تعديل الإجابة</span>
+                                <span>{isEn ? 'Edit Answer' : 'تعديل الإجابة'}</span>
                               </button>
                             </div>
-                            <p className="text-xs sm:text-sm text-slate-800 whitespace-pre-wrap leading-relaxed font-sans">
+                            <p className="text-xs sm:text-sm text-slate-800 leading-relaxed whitespace-pre-wrap font-sans">
                               {essayAnswers[q.id]}
                             </p>
                           </div>
 
-                          {/* Model Answer & Rubric Review */}
-                          <div className="p-4 bg-sky-50/70 border border-sky-200/90 rounded-xl space-y-3">
-                            <div>
-                              <div className="flex items-center gap-1.5 text-xs font-bold text-sky-950 mb-1">
-                                <Check className="w-4 h-4 text-sky-600" />
-                                <span>الإجابة النموذجية المعتمدة:</span>
-                              </div>
-                              <p className="text-xs sm:text-sm font-semibold text-sky-900 leading-relaxed">
-                                {q.correctAnswer}
-                              </p>
-                            </div>
-
-                            <div className="pt-2 border-t border-sky-200/60">
-                              <div className="flex items-center gap-1.5 text-xs font-bold text-slate-800 mb-1">
-                                <HelpCircle className="w-4 h-4 text-slate-500" />
-                                <span>الشرح والتفسير التربوي:</span>
-                              </div>
-                              <p className="text-xs text-slate-600 leading-relaxed">
-                                {q.explanation}
-                              </p>
-                            </div>
-
-                            <div className="pt-2 border-t border-sky-200/60">
-                              <div className="flex items-center gap-1.5 text-xs font-bold text-amber-900 mb-1">
-                                <Award className="w-4 h-4 text-amber-700" />
-                                <span>معيار تقدير الدرجة (Rubric):</span>
-                              </div>
-                              <p className="text-xs text-amber-900/90 leading-relaxed">
-                                {q.rubricCriteria}
-                              </p>
-                            </div>
-                          </div>
-
-                          {/* Self-Assessment */}
-                          <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-xl">
-                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
-                              <span className="text-xs font-bold text-slate-800">
-                                بناءً على معايير التصحيح (Rubric)، قيّم إجابتك ذاتياً:
+                          {/* Self-Rating Rubric */}
+                          <div className="p-4 bg-indigo-50/70 border border-indigo-200/90 rounded-xl space-y-2.5">
+                            <div className="flex items-center justify-between">
+                              <span className="text-xs font-bold text-indigo-950 flex items-center gap-1.5">
+                                <Award className="w-4 h-4 text-indigo-600" />
+                                <span>{isEn ? 'Student Self-Assessment & Mark Allocation:' : 'التقييم الذاتي للطالب وفق المعيار المعتمد:'}</span>
                               </span>
-                              <div className="flex flex-wrap items-center gap-1.5">
-                                <button
-                                  type="button"
-                                  onClick={() => handleSelfRating(q.id, 'excellent')}
-                                  className={`px-2.5 py-1 text-xs rounded-lg font-semibold transition-all cursor-pointer ${
-                                    selfRatings[q.id] === 'excellent'
-                                      ? 'bg-emerald-600 text-white shadow-xs'
-                                      : 'bg-white text-slate-700 border border-slate-200 hover:border-emerald-300'
-                                  }`}
-                                >
-                                  ⭐⭐⭐ نموذجية (كاملة)
-                                </button>
-                                <button
-                                  type="button"
-                                  onClick={() => handleSelfRating(q.id, 'good')}
-                                  className={`px-2.5 py-1 text-xs rounded-lg font-semibold transition-all cursor-pointer ${
-                                    selfRatings[q.id] === 'good'
-                                      ? 'bg-sky-600 text-white shadow-xs'
-                                      : 'bg-white text-slate-700 border border-slate-200 hover:border-sky-300'
-                                  }`}
-                                >
-                                  ⭐⭐ مقبولة (جزئية)
-                                </button>
-                                <button
-                                  type="button"
-                                  onClick={() => handleSelfRating(q.id, 'review')}
-                                  className={`px-2.5 py-1 text-xs rounded-lg font-semibold transition-all cursor-pointer ${
-                                    selfRatings[q.id] === 'review'
-                                      ? 'bg-amber-600 text-white shadow-xs'
-                                      : 'bg-white text-slate-700 border border-slate-200 hover:border-amber-300'
-                                  }`}
-                                >
-                                  ⭐ تحتاج مراجعة
-                                </button>
-                              </div>
+                              <span className="text-[11px] text-indigo-700 font-semibold">
+                                {selfRatings[q.id]
+                                  ? (selfRatings[q.id] === 'excellent'
+                                      ? (isEn ? '⭐⭐⭐ Full Mark' : '⭐⭐⭐ ممتازة ومكتملة')
+                                      : selfRatings[q.id] === 'good'
+                                      ? (isEn ? '⭐⭐ Good / Partial' : '⭐⭐ جيدة وجزئية')
+                                      : (isEn ? '⭐ Needs Review' : '⭐ تحتاج مراجعة وتدقيق'))
+                                  : (isEn ? 'Select your rating:' : 'حدد تقييمك الذاتي:')}
+                              </span>
+                            </div>
+
+                            <div className="grid grid-cols-3 gap-2 pt-1">
+                              <button
+                                type="button"
+                                onClick={() => handleSelfRating(q.id, 'excellent')}
+                                className={`p-2 rounded-lg text-xs font-bold transition-all border cursor-pointer ${
+                                  selfRatings[q.id] === 'excellent'
+                                    ? 'bg-emerald-600 text-white border-emerald-600 shadow-xs'
+                                    : 'bg-white hover:bg-emerald-50 text-emerald-800 border-emerald-200'
+                                }`}
+                              >
+                                {isEn ? '⭐⭐⭐ Full Mark' : '⭐⭐⭐ درجة كاملة'}
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleSelfRating(q.id, 'good')}
+                                className={`p-2 rounded-lg text-xs font-bold transition-all border cursor-pointer ${
+                                  selfRatings[q.id] === 'good'
+                                    ? 'bg-indigo-600 text-white border-indigo-600 shadow-xs'
+                                    : 'bg-white hover:bg-indigo-50 text-indigo-800 border-indigo-200'
+                                }`}
+                              >
+                                {isEn ? '⭐⭐ Partial Mark' : '⭐⭐ درجة جزئية'}
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleSelfRating(q.id, 'review')}
+                                className={`p-2 rounded-lg text-xs font-bold transition-all border cursor-pointer ${
+                                  selfRatings[q.id] === 'review'
+                                    ? 'bg-amber-600 text-white border-amber-600 shadow-xs'
+                                    : 'bg-white hover:bg-amber-50 text-amber-800 border-amber-200'
+                                }`}
+                              >
+                                {isEn ? '⭐ Needs Review' : '⭐ تحتاج مراجعة'}
+                              </button>
                             </div>
                           </div>
                         </div>
@@ -1254,47 +1302,50 @@ export const QuestionsDisplay: React.FC<QuestionsDisplayProps> = ({
                     </div>
                   )}
 
-                  {/* Exam Mode: Student can type online or write on paper */}
+                  {/* Exam Mode / Print Ruled Paper Space */}
                   {viewMode === 'exam' && (
-                    <div className="space-y-3">
-                      {/* On-screen typed answer */}
-                      <div className="print:hidden space-y-2">
-                        <label className="block text-xs font-semibold text-slate-700 mb-1.5 flex items-center justify-between">
-                          <span className="flex items-center gap-1.5">
+                    <div className="mt-4 pt-3 border-t border-dashed border-slate-200">
+                      <div className="print:hidden p-3.5 rounded-xl bg-slate-50 border border-slate-200/90 space-y-2.5">
+                        <div className="flex items-center justify-between text-xs">
+                          <label className="font-bold text-slate-700 flex items-center gap-1.5">
                             <PenLine className="w-3.5 h-3.5 text-indigo-600" />
-                            <span>إجابة الطالب والتحليل المقالي:</span>
-                          </span>
-                          <span className="text-[11px] text-slate-400">يمكنك كتابة الإجابة والتحقق منها مباشرة على الشاشة</span>
-                        </label>
+                            <span>{isEn ? 'Student Draft Space for this question:' : 'مسودة الطالب وتدوين خطوات الحل لهذا السؤال:'}</span>
+                          </label>
+                          <div className="flex items-center gap-2">
+                            {studentDrafts[q.id]?.trim() && (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  handleDraftChange(q.id, '');
+                                  handleClearVerification(q.id);
+                                }}
+                                className="text-[11px] text-slate-500 hover:text-slate-800 underline cursor-pointer"
+                              >
+                                {isEn ? 'Clear' : 'مسح'}
+                              </button>
+                            )}
+                            <button
+                              type="button"
+                              onClick={() => handleVerifyStudentAnswer(q.id, 'draft')}
+                              disabled={!studentDrafts[q.id]?.trim()}
+                              className={`text-[11px] font-bold px-2.5 py-1 rounded-md transition-all ${
+                                studentDrafts[q.id]?.trim()
+                                  ? 'bg-indigo-600 hover:bg-indigo-700 text-white cursor-pointer'
+                                  : 'bg-slate-200 text-slate-400 cursor-not-allowed'
+                              }`}
+                            >
+                              {t('verifyAnswerBtn')}
+                            </button>
+                          </div>
+                        </div>
                         <textarea
-                          value={essayAnswers[q.id] || ''}
-                          onChange={(e) => handleEssayChange(q.id, e.target.value)}
-                          placeholder="اكتب إجابتك هنا على ورقة الاختبار الإلكترونية..."
-                          rows={4}
-                          className="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl text-xs sm:text-sm text-slate-900 focus:bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all leading-relaxed"
+                          value={studentDrafts[q.id] || ''}
+                          onChange={(e) => handleDraftChange(q.id, e.target.value)}
+                          placeholder={isEn ? 'Type your draft or reasoning here to verify correctness...' : 'اكتب مسودتك أو خطواتك هنا للتحقق من صحتها وتدريب نفسك قبل الامتحان...'}
+                          rows={3}
+                          className="w-full p-2.5 bg-white border border-slate-300 rounded-lg text-xs font-mono text-slate-800 placeholder:text-slate-400 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all leading-relaxed"
                         />
 
-                        {/* Exam Mode Verification Button */}
-                        <div className="flex items-center justify-between pt-1">
-                          <span className="text-[11px] text-slate-500 font-mono">
-                            {essayAnswers[q.id]?.trim() ? `${essayAnswers[q.id]?.length || 0} حرف مسجل` : 'اكتب إجابتك لتفعيل التحقق الذاتي'}
-                          </span>
-                          <button
-                            type="button"
-                            onClick={() => handleVerifyStudentAnswer(q.id, 'essay')}
-                            disabled={!essayAnswers[q.id]?.trim()}
-                            className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-lg transition-all ${
-                              essayAnswers[q.id]?.trim()
-                                ? 'bg-indigo-600 hover:bg-indigo-700 text-white cursor-pointer active:scale-95 shadow-2xs'
-                                : 'bg-slate-200 text-slate-400 cursor-not-allowed'
-                            }`}
-                          >
-                            <CheckCheck className="w-3.5 h-3.5" />
-                            <span>التحقق من صحة الإجابة (صحيحة / خطأ)</span>
-                          </button>
-                        </div>
-
-                        {/* Verification Output in Exam Mode */}
                         {draftVerifications[q.id] && (
                           <div
                             className={`p-3.5 rounded-xl border transition-all text-xs space-y-2 mt-2 ${
@@ -1308,12 +1359,16 @@ export const QuestionsDisplay: React.FC<QuestionsDisplayProps> = ({
                                 {draftVerifications[q.id].isCorrect ? (
                                   <>
                                     <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                                    <span>✓ إجابتك صحيحة ومطابقة! (نسبة التوافق: {draftVerifications[q.id].matchScore}%)</span>
+                                    <span>
+                                      {isEn
+                                        ? `✓ Correct! (Match Score: ${draftVerifications[q.id].matchScore}%)`
+                                        : `✓ إجابتك صحيحة ومطابقة! (نسبة التوافق: ${draftVerifications[q.id].matchScore}%)`}
+                                    </span>
                                   </>
                                 ) : (
                                   <>
                                     <XCircle className="w-4 h-4 text-rose-600" />
-                                    <span>✗ إجابتك غير مطابقة / خطأ</span>
+                                    <span>{isEn ? '✗ Needs revision / non-matching' : '✗ إجابتك غير مطابقة / خطأ'}</span>
                                   </>
                                 )}
                               </div>
@@ -1322,12 +1377,13 @@ export const QuestionsDisplay: React.FC<QuestionsDisplayProps> = ({
                                 onClick={() => handleClearVerification(q.id)}
                                 className="text-[11px] underline opacity-70 hover:opacity-100 cursor-pointer"
                               >
-                                إغلاق
+                                {t('close')}
                               </button>
                             </div>
                             <p className="leading-relaxed font-sans">{draftVerifications[q.id].feedback}</p>
                             <div className="pt-1.5 border-t border-slate-200 font-semibold text-slate-800">
-                              الإجابة النموذجية المعتمدة: <span className="font-bold text-indigo-950">{q.correctAnswer}</span>
+                              {isEn ? 'Official Model Answer: ' : 'الإجابة النموذجية المعتمدة: '}
+                              <span className="font-bold text-indigo-950">{q.correctAnswer}</span>
                             </div>
                           </div>
                         )}
@@ -1335,7 +1391,9 @@ export const QuestionsDisplay: React.FC<QuestionsDisplayProps> = ({
 
                       {/* Printed ruled paper area for physical exam */}
                       <div className="hidden print:block pt-2">
-                        <div className="text-xs font-bold text-slate-800 mb-2">إجابة الطالب والتعليل:</div>
+                        <div className="text-xs font-bold text-slate-800 mb-2">
+                          {isEn ? 'Student Written Answer & Justification:' : 'إجابة الطالب والتعليل:'}
+                        </div>
                         {essayAnswers[q.id]?.trim() ? (
                           <div className="p-2 border border-slate-300 rounded bg-slate-50/50 text-xs text-slate-900 whitespace-pre-wrap">
                             {essayAnswers[q.id]}
@@ -1358,11 +1416,12 @@ export const QuestionsDisplay: React.FC<QuestionsDisplayProps> = ({
                       <div className="flex items-center justify-between mb-1">
                         <span className="text-xs font-bold text-indigo-900 flex items-center gap-1.5">
                           <PenLine className="w-3.5 h-3.5 text-indigo-700" />
-                          <span>إجابة الطالب المدونة لهذا السؤال:</span>
+                          <span>{isEn ? 'Student Drafted Response:' : 'إجابة الطالب المدونة لهذا السؤال:'}</span>
                         </span>
                         {selfRatings[q.id] && (
                           <span className="text-[11px] font-semibold text-indigo-700 bg-white px-2 py-0.5 rounded border border-indigo-200">
-                            التقييم الذاتي: {selfRatings[q.id] === 'excellent' ? '⭐⭐⭐ كاملة' : selfRatings[q.id] === 'good' ? '⭐⭐ جزئية' : '⭐ تحتاج مراجعة'}
+                            {isEn ? 'Self Rating: ' : 'التقييم الذاتي: '}
+                            {selfRatings[q.id] === 'excellent' ? '⭐⭐⭐ Full Mark' : selfRatings[q.id] === 'good' ? '⭐⭐ Partial' : '⭐ Needs Work'}
                           </span>
                         )}
                       </div>
@@ -1378,8 +1437,12 @@ export const QuestionsDisplay: React.FC<QuestionsDisplayProps> = ({
               {viewMode === 'exam' && q.options && q.options.length > 0 && (
                 <div className="mt-4 pt-2.5 border-t border-dashed border-slate-200 text-xs text-slate-400 print:border-slate-300 print:break-inside-avoid">
                   <div className="flex items-center justify-between">
-                    <span className="font-semibold text-slate-500 print:text-slate-700">اختيار الطالب:</span>
-                    <span className="font-mono text-[11px] text-slate-400">[ ضع دائرة حول الحرف الصحيح: أ - ب - ج - د ]</span>
+                    <span className="font-semibold text-slate-500 print:text-slate-700">
+                      {isEn ? 'Student Selection:' : 'اختيار الطالب:'}
+                    </span>
+                    <span className="font-mono text-[11px] text-slate-400">
+                      {isEn ? '[ Circle the correct option: A - B - C - D ]' : '[ ضع دائرة حول الحرف الصحيح: أ - ب - ج - د ]'}
+                    </span>
                   </div>
                 </div>
               )}
@@ -1391,7 +1454,7 @@ export const QuestionsDisplay: React.FC<QuestionsDisplayProps> = ({
                   <div className="bg-sky-50/80 border border-sky-200/80 rounded-xl p-3.5 print:bg-slate-50 print:border-slate-300">
                     <div className="flex items-center gap-1.5 text-xs font-bold text-sky-950 mb-1 print:text-slate-900">
                       <Check className="w-4 h-4 text-sky-600 print:text-slate-700" />
-                      <span>الإجابة النموذجية المعتمدة:</span>
+                      <span>{t('correctAnswerLabel')}</span>
                     </div>
                     <div className="text-sm font-bold text-sky-900 leading-relaxed print:text-slate-950">
                       {q.correctAnswer}
@@ -1402,7 +1465,7 @@ export const QuestionsDisplay: React.FC<QuestionsDisplayProps> = ({
                   <div className="bg-slate-50 border border-slate-200 rounded-xl p-3.5 text-xs text-slate-700 print:border-slate-300">
                     <div className="flex items-center gap-1.5 font-bold text-slate-900 mb-1.5">
                       <HelpCircle className="w-3.5 h-3.5 text-slate-500 print:text-slate-700" />
-                      <span>التفسير والتحليل العلمي والتربوي:</span>
+                      <span>{t('explanationLabel')}</span>
                     </div>
                     <p className="leading-relaxed text-slate-600 print:text-slate-800">{q.explanation}</p>
                   </div>
@@ -1411,7 +1474,7 @@ export const QuestionsDisplay: React.FC<QuestionsDisplayProps> = ({
                   <div className="bg-amber-50/60 border border-amber-200/60 rounded-xl p-3 text-xs text-amber-900 print:bg-slate-50 print:border-slate-300">
                     <div className="flex items-center gap-1.5 font-bold mb-1 print:text-slate-900">
                       <Award className="w-3.5 h-3.5 text-amber-700 print:text-slate-700" />
-                      <span>معيار تقدير الدرجة (Rubric):</span>
+                      <span>{t('rubricLabel')}</span>
                     </div>
                     <p className="leading-relaxed text-amber-800 print:text-slate-800">{q.rubricCriteria}</p>
                   </div>
@@ -1423,9 +1486,9 @@ export const QuestionsDisplay: React.FC<QuestionsDisplayProps> = ({
       </div>
 
       {/* Printable Exam Paper Footer (Visible only when printing) */}
-      <div className="hidden print:flex justify-between items-center text-[10px] text-slate-600 pt-4 mt-6 border-t border-slate-400">
-        <div>مساعد معلم مادة البرمجة والذكاء الاصطناعي — إعداد الأستاذة / هاجر محمود</div>
-        <div>مع تمنياتنا لجميع الطلاب بالنجاح والتفوق الدراسي</div>
+      <div className="hidden print:flex justify-between items-center text-[10px] text-slate-600 pt-4 mt-6 border-t border-slate-400" dir={isEn ? "ltr" : "rtl"}>
+        <div>{isEn ? 'Programming and AI Assistant — Prepared by: Ms. Hagar Mahmoud' : 'مساعد معلم مادة البرمجة والذكاء الاصطناعي — إعداد الأستاذة / هاجر محمود'}</div>
+        <div>{isEn ? 'With our best wishes for excellence and success' : 'مع تمنياتنا لجميع الطلاب بالنجاح والتفوق الدراسي'}</div>
       </div>
     </section>
   );

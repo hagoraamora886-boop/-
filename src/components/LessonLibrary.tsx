@@ -15,7 +15,6 @@ import {
   Download,
   Upload,
   RotateCcw,
-  Code2,
   FileText,
   CheckCircle2,
   Cpu,
@@ -24,6 +23,7 @@ import {
   Layout,
   Layers,
 } from 'lucide-react';
+import { useLanguage } from '../context/LanguageContext.tsx';
 
 interface LessonLibraryProps {
   chapters: Chapter[];
@@ -50,42 +50,49 @@ export const LessonLibrary: React.FC<LessonLibraryProps> = ({
   onImportData,
   notificationMessage,
 }) => {
+  const { language, t, isRtl } = useLanguage();
+  const isEn = language === 'en';
+
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedChapterFilter, setSelectedChapterFilter] = useState('all');
 
   const filteredLessons = lessons.filter((les) => {
     const matchChapter =
       selectedChapterFilter === 'all' || les.chapterId === selectedChapterFilter;
+    const term = searchTerm.toLowerCase().trim();
     const matchSearch =
-      searchTerm.trim() === '' ||
-      les.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      les.content.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      les.keyConcepts?.some((k) =>
-        k.toLowerCase().includes(searchTerm.toLowerCase())
-      );
+      term === '' ||
+      les.title.toLowerCase().includes(term) ||
+      (les.titleEn && les.titleEn.toLowerCase().includes(term)) ||
+      les.content.toLowerCase().includes(term) ||
+      les.keyConcepts?.some((k) => k.toLowerCase().includes(term));
     return matchChapter && matchSearch;
   });
 
   const getChapterBadge = (chapterId: string) => {
     switch (chapterId) {
+      case 'ch-1':
       case 'ch1':
         return {
           icon: Cpu,
           badgeColor: 'text-indigo-700 bg-indigo-50 border-indigo-200',
           accentBorder: 'hover:border-indigo-400',
         };
+      case 'ch-2':
       case 'ch2':
         return {
           icon: ShieldCheck,
           badgeColor: 'text-emerald-700 bg-emerald-50 border-emerald-200',
           accentBorder: 'hover:border-emerald-400',
         };
+      case 'ch-3':
       case 'ch3':
         return {
           icon: Globe,
           badgeColor: 'text-sky-700 bg-sky-50 border-sky-200',
           accentBorder: 'hover:border-sky-400',
         };
+      case 'ch-4':
       case 'ch4':
         return {
           icon: Layout,
@@ -117,13 +124,13 @@ export const LessonLibrary: React.FC<LessonLibraryProps> = ({
           <div>
             <div className="flex items-center gap-2 text-xs font-semibold text-sky-600 mb-1">
               <Layers className="w-3.5 h-3.5" />
-              <span>المحتوى الرقمي والتطبيقي</span>
+              <span>{isEn ? 'Digital Curriculum & Syllabus' : 'المحتوى الرقمي والتطبيقي'}</span>
             </div>
             <h2 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
-              مكتبة الدروس والبرمجة التفاعلية
+              {t('libraryTitle')}
             </h2>
             <p className="text-xs sm:text-sm text-slate-500 mt-1">
-              استكشف دروس المقرر، راجع المفاهيم والأكواد البرمجية، أو أضف دروسك الخاصة
+              {t('librarySubtitle')}
             </p>
           </div>
 
@@ -131,25 +138,25 @@ export const LessonLibrary: React.FC<LessonLibraryProps> = ({
             <button
               type="button"
               onClick={onOpenNewLessonModal}
-              className="inline-flex items-center gap-1.5 px-4 py-2 text-xs sm:text-sm font-semibold text-white bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-600 hover:to-indigo-700 rounded-xl transition-all shadow-sm hover:shadow"
+              className="inline-flex items-center gap-1.5 px-4 py-2 text-xs sm:text-sm font-semibold text-white bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-600 hover:to-indigo-700 rounded-xl transition-all shadow-sm hover:shadow cursor-pointer"
             >
               <Plus className="w-4 h-4" />
-              <span>إضافة درس جديد</span>
+              <span>{t('navAddLesson')}</span>
             </button>
 
             <button
               type="button"
               onClick={onExportData}
-              className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-medium text-slate-700 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-xl transition-colors"
-              title="تصدير مكتبة الدروس كملف JSON للنسخ الاحتياطي"
+              className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-medium text-slate-700 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-xl transition-colors cursor-pointer"
+              title={t('exportBackup')}
             >
               <Download className="w-3.5 h-3.5 text-slate-500" />
-              <span>تصدير نسخة</span>
+              <span>{t('exportBackup')}</span>
             </button>
 
             <label className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-medium text-slate-700 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-xl transition-colors cursor-pointer">
               <Upload className="w-3.5 h-3.5 text-slate-500" />
-              <span>استيراد</span>
+              <span>{t('importBackup')}</span>
               <input
                 type="file"
                 accept=".json"
@@ -161,19 +168,18 @@ export const LessonLibrary: React.FC<LessonLibraryProps> = ({
             <button
               type="button"
               onClick={() => {
-                if (
-                  window.confirm(
-                    'هل ترغب في استعادة الدروس الافتراضية لمنهج البكالوريا؟ ستظل الدروس الأصلية متوفرة.'
-                  )
-                ) {
+                const confirmMsg = isEn
+                  ? 'Restore default official curriculum lessons? Custom changes will be preserved or reset.'
+                  : 'هل ترغب في استعادة الدروس الافتراضية لمنهج البكالوريا؟ ستظل الدروس الأصلية متوفرة.';
+                if (window.confirm(confirmMsg)) {
                   onResetLessons();
                 }
               }}
-              className="inline-flex items-center gap-1.5 px-2.5 py-2 text-xs font-medium text-slate-400 hover:text-slate-700 transition-colors"
-              title="استعادة دروس المنهج الرسمية"
+              className="inline-flex items-center gap-1.5 px-2.5 py-2 text-xs font-medium text-slate-400 hover:text-slate-700 transition-colors cursor-pointer"
+              title={t('restoreDefaults')}
             >
               <RotateCcw className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">استعادة الافتراضي</span>
+              <span className="hidden sm:inline">{isEn ? 'Restore Defaults' : 'استعادة الافتراضي'}</span>
             </button>
           </div>
         </div>
@@ -181,13 +187,15 @@ export const LessonLibrary: React.FC<LessonLibraryProps> = ({
         {/* Filter and Search Bar */}
         <div className="mt-5 grid grid-cols-1 sm:grid-cols-12 gap-3">
           <div className="sm:col-span-8 relative">
-            <Search className="w-4 h-4 text-slate-400 absolute right-3.5 top-1/2 -translate-y-1/2" />
+            <Search className={`w-4 h-4 text-slate-400 absolute top-1/2 -translate-y-1/2 ${isRtl ? 'right-3.5' : 'left-3.5'}`} />
             <input
               type="text"
-              placeholder="ابحث في عناوين ونصوص الدروس، المفاهيم، وسيناريوهات التطبيق..."
+              placeholder={t('searchLessons')}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-3 pr-9 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm text-slate-800 placeholder:text-slate-400 focus:bg-white focus:ring-2 focus:ring-sky-500/30 focus:border-sky-500 transition-all"
+              className={`w-full py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm text-slate-800 placeholder:text-slate-400 focus:bg-white focus:ring-2 focus:ring-sky-500/30 focus:border-sky-500 transition-all ${
+                isRtl ? 'pr-9 pl-3' : 'pl-9 pr-3'
+              }`}
             />
           </div>
 
@@ -195,14 +203,16 @@ export const LessonLibrary: React.FC<LessonLibraryProps> = ({
             <select
               value={selectedChapterFilter}
               onChange={(e) => setSelectedChapterFilter(e.target.value)}
-              className="w-full py-2.5 px-3 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm text-slate-800 focus:bg-white focus:ring-2 focus:ring-sky-500/30 focus:border-sky-500 transition-all"
+              className="w-full py-2.5 px-3 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm text-slate-800 focus:bg-white focus:ring-2 focus:ring-sky-500/30 focus:border-sky-500 transition-all cursor-pointer"
             >
-              <option value="all">كافة الفصول ({lessons.length} درس)</option>
+              <option value="all">
+                {isEn ? `All Units (${lessons.length} lessons)` : `كافة الفصول (${lessons.length} درس)`}
+              </option>
               {chapters.map((ch) => {
                 const count = lessons.filter((l) => l.chapterId === ch.id).length;
                 return (
                   <option key={ch.id} value={ch.id}>
-                    {ch.title} ({count})
+                    {isEn && ch.titleEn ? ch.titleEn : ch.title} ({count})
                   </option>
                 );
               })}
@@ -217,9 +227,9 @@ export const LessonLibrary: React.FC<LessonLibraryProps> = ({
           <div className="w-12 h-12 rounded-2xl bg-slate-100 flex items-center justify-center text-slate-400 mx-auto mb-3">
             <FileText className="w-6 h-6" />
           </div>
-          <p className="font-bold text-slate-800">لم يتم العثور على أي دروس مطابقة</p>
+          <p className="font-bold text-slate-800">{t('noLessonsFound')}</p>
           <p className="text-xs text-slate-400 mt-1">
-            جرب تعديل كلمات البحث أو اضغط على «إضافة درس جديد» لإدراج درسك الخاص
+            {isEn ? 'Try adjusting your search keywords or add a new custom lesson.' : 'جرب تعديل كلمات البحث أو اضغط على «إضافة درس جديد» لإدراج درسك الخاص'}
           </p>
         </div>
       ) : (
@@ -227,6 +237,8 @@ export const LessonLibrary: React.FC<LessonLibraryProps> = ({
           {filteredLessons.map((les) => {
             const chapterBadge = getChapterBadge(les.chapterId);
             const ChapterIcon = chapterBadge.icon;
+            const displayTitle = isEn && les.titleEn ? les.titleEn : les.title;
+            const displayChapter = isEn && les.chapterTitleEn ? les.chapterTitleEn : les.chapterTitle;
 
             return (
               <article
@@ -234,18 +246,18 @@ export const LessonLibrary: React.FC<LessonLibraryProps> = ({
                 className={`group bg-white border border-slate-200 rounded-2xl p-5 hover:-translate-y-0.5 hover:shadow-md transition-all duration-200 flex flex-col justify-between ${chapterBadge.accentBorder}`}
               >
                 <div>
-                  {/* Clean unboxed metadata with separators (Anti-slop rule) */}
+                  {/* Metadata with separators */}
                   <div className="flex items-center justify-between text-xs text-slate-500 mb-2.5">
                     <div className="flex items-center gap-1.5 truncate max-w-[80%]">
                       <span className={`inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-md border ${chapterBadge.badgeColor}`}>
                         <ChapterIcon className="w-3 h-3" />
-                        <span>{les.chapterTitle}</span>
+                        <span>{displayChapter}</span>
                       </span>
                       {les.isCustom && (
                         <>
                           <span aria-hidden="true">·</span>
                           <span className="text-amber-700 font-semibold bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded text-[10px]">
-                            درس مخصص
+                            {isEn ? 'Custom' : 'درس مخصص'}
                           </span>
                         </>
                       )}
@@ -255,8 +267,8 @@ export const LessonLibrary: React.FC<LessonLibraryProps> = ({
                       <button
                         type="button"
                         onClick={() => onEditLesson(les)}
-                        className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-colors"
-                        title="تعديل محتوى الدرس"
+                        className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
+                        title={t('editLesson')}
                       >
                         <Edit2 className="w-3.5 h-3.5" />
                       </button>
@@ -264,12 +276,15 @@ export const LessonLibrary: React.FC<LessonLibraryProps> = ({
                         <button
                           type="button"
                           onClick={() => {
-                            if (window.confirm(`هل أنت متأكد من حذف الدرس «${les.title}»؟`)) {
+                            const confirmMsg = isEn
+                              ? `Are you sure you want to delete lesson "${displayTitle}"?`
+                              : `هل أنت متأكد من حذف الدرس «${les.title}»؟`;
+                            if (window.confirm(confirmMsg)) {
                               onDeleteLesson(les.id);
                             }
                           }}
-                          className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
-                          title="حذف الدرس"
+                          className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
+                          title={t('deleteLesson')}
                         >
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>
@@ -278,7 +293,7 @@ export const LessonLibrary: React.FC<LessonLibraryProps> = ({
                   </div>
 
                   <h3 className="text-base font-bold text-slate-900 group-hover:text-indigo-900 transition-colors leading-snug">
-                    {les.title}
+                    {displayTitle}
                   </h3>
 
                   <p className="mt-2 text-xs sm:text-sm text-slate-600 line-clamp-3 leading-relaxed">
@@ -288,7 +303,7 @@ export const LessonLibrary: React.FC<LessonLibraryProps> = ({
                   {/* Key Concepts */}
                   {les.keyConcepts && les.keyConcepts.length > 0 && (
                     <div className="mt-3 flex flex-wrap items-center gap-1.5 text-xs text-slate-500">
-                      <span className="font-semibold text-slate-700 text-[11px]">المفاهيم:</span>
+                      <span className="font-semibold text-slate-700 text-[11px]">{t('keyConcepts')}</span>
                       {les.keyConcepts.map((k, idx) => (
                         <span
                           key={idx}
@@ -300,7 +315,7 @@ export const LessonLibrary: React.FC<LessonLibraryProps> = ({
                     </div>
                   )}
 
-                  {/* Code snippet indicator with macOS-like bar */}
+                  {/* Code snippet indicator */}
                   {les.codeExample && (
                     <div className="mt-3.5 rounded-xl border border-slate-800/80 bg-slate-900 text-slate-200 overflow-hidden text-xs">
                       <div className="flex items-center justify-between px-3 py-1.5 bg-slate-800/60 border-b border-slate-700/50">
@@ -309,7 +324,7 @@ export const LessonLibrary: React.FC<LessonLibraryProps> = ({
                           <span className="w-2.5 h-2.5 rounded-full bg-amber-500/80" />
                           <span className="w-2.5 h-2.5 rounded-full bg-emerald-500/80" />
                         </div>
-                        <span className="text-[10px] font-mono text-slate-400">script</span>
+                        <span className="text-[10px] font-mono text-slate-400">code_spec</span>
                       </div>
                       <div className="p-2.5 font-mono text-[11px] text-emerald-400 overflow-x-auto">
                         <span className="truncate block">{les.codeExample.split('\n')[0]}</span>
@@ -321,16 +336,17 @@ export const LessonLibrary: React.FC<LessonLibraryProps> = ({
                 {/* Bottom Card Action: Generate Questions from this Lesson */}
                 <div className="mt-5 pt-3 border-t border-slate-100 flex items-center justify-between">
                   <span className="text-[11px] text-slate-400">
-                    تم التحديث: {new Date(les.updatedAt).toLocaleDateString('ar-EG')}
+                    {isEn ? 'Updated: ' : 'تم التحديث: '}
+                    {new Date(les.updatedAt).toLocaleDateString(isEn ? 'en-US' : 'ar-EG')}
                   </span>
 
                   <button
                     type="button"
                     onClick={() => onSelectLessonForGeneration(les.chapterId, les.id)}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 rounded-xl transition-all hover:shadow-xs"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 rounded-xl transition-all hover:shadow-xs cursor-pointer"
                   >
                     <Sparkles className="w-3.5 h-3.5 text-indigo-600" />
-                    <span>توليد وتدريب للدرس</span>
+                    <span>{t('generateFromThisLesson')}</span>
                   </button>
                 </div>
               </article>
